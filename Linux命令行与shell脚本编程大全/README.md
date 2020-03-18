@@ -219,13 +219,13 @@ exit
 
 
 
-- 进程列表
+##### 进程列表
 
-  `$ pwd ; ls ; cd /etc ; pwd ; cd ; pwd ; ls`
+`$ pwd ; ls ; cd /etc ; pwd ; cd ; pwd ; ls`
 
-  `$ (pwd ; ls ; cd /etc ; pwd ; cd ; pwd ; ls)`
+`$ (pwd ; ls ; cd /etc ; pwd ; cd ; pwd ; ls)`
 
-  圆括号让命令列表变成了进程列表，生成一个子shell来执行对应的命令。花括号就不会创建子shell。
+圆括号让命令列表变成了进程列表，生成一个子shell来执行对应的命令。花括号就不会创建子shell。
 
 ```shell
  andyron@Mac  ~  pwd; ls ; echo $ZSH_SUBSHELL
@@ -242,35 +242,77 @@ Documents                       Movies                          Public          
 1
 ```
 
-- 别出心裁的子shell用法
+##### 别出心裁的子shell用法
+
+###### 后台模式
+
+```shell
+$ sleep 30&
+[1] 28910
+$ ps -f
+  UID   PID  PPID   C STIME   TTY           TIME CMD
+  501   501   373   0 日08上午 ttys000    0:00.05 /Applications/iTerm.app/Contents/MacOS/iTerm2 --server login -fp andyron
+  501   505   504   0 日08上午 ttys000    0:01.19 -zsh
+  501  8364   373   0 日06下午 ttys001    0:00.09 /Applications/iTerm.app/Contents/MacOS/iTerm2 --server login -fp andyron
+  501  8366  8365   0 日06下午 ttys001    0:03.20 -zsh
+  501 28910  8366   0  2:43下午 ttys001    0:00.00 sleep 30
+$ jobs
+[1]  + running    sleep 30
+$ jobs -l
+[1]  + 28910 running    sleep 30
+$ 
+[1]  + 28910 done       sleep 30
+```
+
+###### 将进程列表置入后台
+
+
+
+###### 协程
 
 
 
 #### 5.3 理解shell的内建命令
 
-- **外部命令**/文件系统命令
+#####  **外部命令**（也称文件系统命令）
 
   通常位于`/bin/`，`/urs/bin`， `/sbin`， `/usr/sbin`
 
-  `which`, `type`  
+  `which`, `type`  能找到外部命令的位置
 
-  **外部命令执行时，会创建一个子进程。**
+  <font color=#FF8C00>**衍生（forking）**</font>：**外部命令执行时，会创建一个子进程。**
 
-  ```shell
-  $ type ps
-  ps is /bin/ps
-  ```
+```bash
+$ ps -f
+UID         PID   PPID  C STIME TTY          TIME CMD
+andyron    1453   1452  0 22:37 pts/0    00:00:00 -bash
+andyron    1473   1453  7 22:38 pts/0    00:00:00 ps -f
+```
 
-  
 
-- **内建命令**
 
-  ```shell
-  $ type cd
-  cd is a shell builtin
-  ```
+##### **内建命令**
 
-  
+内建命令不需要使用子进程，他是shell的组成部分。不需要借助外部程序文件来运行
+
+```shell
+$ type cd
+cd is a shell builtin
+```
+
+cd, exit, history, alias等都是内建命令。
+
+另外echo,pwd既有内建命令也有外部命令。
+
+```bash
+$ which echo
+/bin/echo
+$ type -a echo
+echo is a shell builtin
+echo is /bin/echo
+```
+
+
 
 ### 6.Linux环境变量
 
@@ -842,3 +884,562 @@ $ echo $?
 
 
 ### 12 使用结构化命令
+
+
+
+#### 12.1 if-then
+
+```
+if command 
+then
+	commands
+fi
+```
+
+command命令成功运行（退出状态码为0）时，then的命令commands就被执行。
+
+另一种表示方式：
+
+```
+if command; then 
+	commands
+fi
+```
+
+```shell
+#! /bin/bash
+# test the if statment
+
+if pwd
+then
+  echo "It worked"
+fi
+```
+
+```shell
+#! /bin/bash
+# 测试then中的多命令
+
+testUser=andyron
+
+if grep $testUser /etc/passwd
+then
+  echo "This is my first command"
+  echo "This is my second command"
+  echo "显示用户bash相关文件："
+  ls -a /home/$testUser/.b*
+fi
+```
+
+
+
+#### 12.2 if-then-else
+
+```
+if command 
+then
+  commands
+else
+  commands
+fi
+```
+
+```shell
+#! /bin/bash
+# 测试else
+
+testUser=andyron2
+
+if grep $testUser /etc/passwd
+then
+  echo "用户$testUser的bash相关文件："
+  ls -a /home/$testUser/.b*
+  echo
+else
+  echo "系统中不存在用户$testUser."
+  echo
+fi
+```
+
+
+
+#### 12.3 嵌套if
+
+if-then-else􏲟􏴨􏿢语句的else代码块中可以嵌套if-then语句。􏴶􏵛􏶝􏻀
+
+```shell
+#! /bin/bash
+# 测试嵌套if
+
+testUser=NoSuchUser
+
+if grep $testUser /etc/passwd
+then
+  echo "系统中存在用户$testUser。"
+else
+  echo "系统中不存在用户$testUser."
+  if ls -d /home/$testUser/
+  then
+    echo "但是，$testUser用户有一个用户目录。"
+  fi
+fi
+```
+
+else部分的另一种形式： **elif**。
+
+```
+if command1 
+then
+  commands 
+elif command2 
+then
+  more commands 
+fi
+```
+
+```shell
+#! /bin/bash
+# 测试嵌套if,使用elif
+
+testUser=andyron2
+
+if grep $testUser /etc/passwd
+then
+  echo "系统中存在用户$testUser。"
+elif ls -d /home/$testUser/
+then
+  echo "系统中不存在用户$testUser."
+  echo "但是，$testUser用户有一个用户目录。"
+else
+  echo "系统中不存在用户$testUser."
+  echo "而且，$testUser用户也没有用户目录。"
+fi
+```
+
+当然也可以将多了elif语句穿起来使用。(可以被之后的case替代)
+
+```
+if command1 
+then
+  command set 1 
+elif command2
+then
+  command set 2 
+elif command3 
+then
+  command set 3 
+elif command4 
+then
+  command set 4
+fi
+```
+
+
+
+#### 12.4 **test**􏴦􏴧命令
+
+if-then语句只能用于测试**命令退出状态码**。其它就要是test命令了。
+
+```
+if test condition 
+then
+  commands
+fi
+```
+
+如果test命令中列出的条件成立，test命令就会退出并返回退出状态码0。
+
+```shell
+#! /bin/bash
+# 测试 test命令
+
+my_var="Full"
+
+if test $my_var
+then
+  echo "表示式$my_var 的返回结果是True"
+else
+  echo "表示式$my_var 的返回结果是False"
+fi
+```
+
+另一种条件测试方法（注意[]中的空格）：
+
+```
+if [ condition ]
+then 
+  commands
+fi
+```
+
+test􏱖􏸛􏱡􏼡􏽵􏽷􏵍􏲻􏴭􏴖􏰨命令的三类条件判断：数值比较，字符串比较，文件比较
+
+
+
+##### 数值比较 􏲉 􏲾􏵦􏸒􏴔􏶣
+
+ 􏲉 􏿝􏴖􏴔􏶣![](../images/linux-014.jpg)
+
+```shell
+#! /bin/bash
+# test命令的数值比较
+
+value1=10
+value2=11
+
+if [ $value1 -gt 5 ]
+then
+  echo "值$value1大于(greater than) 5。"
+fi
+
+if [ $value1 -eq $value2 ]
+then
+  echo "两个值是相等的(equal)。"
+else
+  echo "两个值不相等。"
+fi
+```
+
+bash shell只能处理整数。下面浮点数的条件测试是不行的：
+
+```shell
+#! /bin/bash
+# 测试浮点数比较
+
+value1=5.555
+
+echo "测试的浮点数是：$value1"
+
+if [ $value1 -gt 5 ]
+then
+ echo "测试的数$value1是大于5的。"
+fi
+```
+
+```shell
+$ ./floating_point_test.sh
+测试的浮点数是：5.555
+./floating_point_test.sh: line 8: [: 5.555: integer expression expected
+```
+
+
+
+##### 字符串比较
+
+![](../images/linux-015.jpg)
+
+```shell
+#! /bin/bash
+# 字符串相等测试
+
+testUser=badUser
+
+
+if [ $USER != $testUser ]
+then
+  echo "当前用户不是$testUser"
+else
+  echo "Welcome $testUser"
+fi
+```
+
+
+
+??
+
+##### 文件比较
+
+􏳯􏺡􏿬􏿭![](../images/linux-016.jpg)
+
+文件比较测试是shell编程中最为强大、使用最多的比较形式。
+
+1. 检查目录
+
+```shell
+// test11.sh
+
+#!/bin/bash
+# 检查目录
+ 
+jump_directory=/home/arthur 
+
+if [ -d $jump_directory ] 
+then
+	echo "The $jump_directory directory exists" 
+	cd $jump_directory
+	ls
+else
+	echo "The $jump_directory directory does not exist"
+fi 
+```
+
+
+
+2. 检查对象是否存在
+
+```shell
+// test12.sh
+
+#! /bin/bash
+# 检查对象是否存在
+
+location=$HOME
+file_name="sentinel"
+
+if [ -e $location ]
+then #Directory does exist
+  echo "OK on the $location directory."
+  echo "Now checking on the file, $file_name."
+
+  if [ -e $location/$file_name ]
+  then #File does exist
+    echo "OK on the filename"
+    echo "Updating Current Date..."
+    date >> $location/$file_name
+  else #File does not exist
+    echo "File does not exist"
+    echo "Nothing to update"
+  fi
+
+else   #Directory does not exist
+  echo "The $location directory does not exist."
+  echo "Nothing to update"
+fi
+```
+
+3. 检查文件
+
+```shell
+// test13.sh
+
+#! /bin/bash
+
+item_name=$HOME
+echo
+echo "正在检查的是：$item_name"
+echo
+
+if [ -e $item_name ]
+then
+  echo "$item_name是存在的。"
+  echo "但是否是文件呢？"
+  echo 
+  if [ -f $item_name ]
+  then 
+    echo "Yes, $item_name是一个文件。"
+  else
+    echo "No, $item_name不是一个文件。"
+  fi
+else
+  echo "$item_name不存在。"
+fi
+```
+
+
+
+4. 检查是否可读
+
+```shell
+// test14.sh
+
+#! /bin/bash
+# 测试是否为可读文件
+
+pwfile=/etc/shadow
+
+
+if [ -f $pwfile ]
+then
+  if [ -r $pwfile ]
+  then
+    tail $pwfile
+  else
+    echo "Sorry, 不能阅读$pwfile文件"
+  fi
+else
+  echo "Sorry, 文件$pwfile不存在"
+fi
+```
+
+
+
+5. 检查空文件
+
+```shell
+// test15.sh
+
+#! /bin/bash
+# 检查空文件
+
+file_name=$HOME/sentinel
+
+if [ -f $file_name ]
+then
+  if [ -s $file_name ]
+  then
+    echo "$file_name是存在的，并且不为空。"
+  else
+    echo "$file_name存在，但为空。"
+  fi
+else
+  echo "文件$file_name不存在。"
+fi
+```
+
+
+
+6. 检查是否可写
+
+
+
+7. 检查文件是否可以执行
+
+
+
+
+
+8. 检查所属关系
+
+```shell
+// test18.sh
+
+# 检查所属关系
+
+if [ -O /etc/passwd ] # 检查文件或目录是否属于当前用户
+then
+  echo "/etc/passwd 属于当前用户$USER。"
+else
+  echo "/etc/passwd 不属于当前用户。"
+fi
+```
+
+
+
+
+
+9. 检查默认属组关系
+
+
+
+10. 检查文件日期
+
+
+
+
+
+#### 12.5 复合条件测试
+
+```
+ [ condition1 ] && [ condition2 ]
+􏲉 [ condition1 ] || [ condition2 ]
+```
+
+```shell
+if [ -d $HOME ] && [ -w $HOME/testing ]
+```
+
+
+
+#### 12.6 if-then的高级特性
+
+##### 使用双圆括号(可以使用更多的数学表达式)
+
+```
+(( expression ))
+```
+
+![](../images/linux-017.jpg)
+
+```shell
+$ cat test23.sh
+#!/bin/bash
+# using double parenthesis 
+
+val1=10
+
+if (( $val1 ** 2 > 90 )) then
+(( val2 = $val1 ** 2 ))
+echo "The square of $val1 is $val2" 
+fi
+
+$ ./test23.sh
+The square of 10 is 100
+```
+
+
+
+##### 使用双方括号(字符串比较的高级特效)
+
+```
+[[ expression ]]
+```
+
+
+
+#### 12.7 case命令
+
+```
+case variable in
+pattern1 | pattern2) commands1;; 
+pattern3) commands2;;
+*) default commands;;
+esac
+```
+
+
+
+```shell
+#! /bin/bash
+# case
+
+case $USER in
+rich | andyron)
+  echo "Welcom, $USER"
+  echo "Please enjoy your visit";;
+testing)
+  echo "特殊的测试账号";;
+andyron2)
+  echo ".....";;
+esac
+```
+
+
+
+### 13 更多的结构化命令
+
+#### 13.1 for
+
+```
+for var in list 
+do
+  commands
+done
+```
+
+```shell
+#! /bin/bash
+
+for test in 江苏 浙江 山东 安徽 广东 黑龙江 河南 河北 吉林 福建 台湾 广西 云南 四川 新疆
+do
+ echo "有一个省份的名字叫$test"
+done
+
+echo "最后一个省份是$test"
+
+test=上海
+
+echo "现在test是$test"
+```
+
+??
+
+
+
+### 14 处理用户输入
+
+
+
+
+
+
+
