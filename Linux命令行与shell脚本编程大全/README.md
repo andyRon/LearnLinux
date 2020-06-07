@@ -1439,7 +1439,400 @@ echo "现在test是$test"
 
 
 
+#### 14.1 命令行参数
 
+##### 读取参数
+
+`$0`是程序名， `$1`是第一个参数，`$2`是第二参数，...，直到第九个参数`$9`；第十个以后用花括号表示，如${10}。
+
+```shell
+#! /bin/bash
+#
+
+
+factorial=1
+
+for (( number = 1; number <= $1 ; number++ ))
+do
+  factorial=$[ $factorial * $number ]
+done
+
+echo The factorial of $1 is $factorial.
+```
+
+```shell
+$ ./test1.sh 5
+The factorial of 5 is 120.
+```
+
+
+
+##### 读取脚本名
+
+`$0`包括路径，`$(basename $0)`获得脚本名
+
+
+
+```shell
+$ cat test6.sh
+#! /bin/bash
+#
+
+name=$(basename $0)
+
+if [ $name = "addem" ]
+then
+  total=$[ $1 + $2 ]
+elif [ $name = "multem" ]
+then
+  total=$[ $1 * $2 ]
+fi
+
+echo
+echo 计算结果为$total。
+
+$ cp test6.sh addem
+$ chmod u+x addem
+$ ln -s test6.sh multem
+$ ll *em
+-rwxrw-r--. 1 andyron andyron 181 3月  19 04:24 addem
+lrwxrwxrwx. 1 andyron andyron   8 3月  19 04:24 multem -> test6.sh
+$ ./addem 2 5
+
+计算结果为7。
+$ ./multem 2 5
+
+计算结果为10。
+$
+```
+
+
+
+##### 测试参数
+
+
+
+```shell
+if [ -n "$1" ]   # 测试参数是否存在
+```
+
+
+
+#### 14.2 特殊参数变量
+
+##### 参数统计
+
+`$#`表示命令行参数的个数
+
+##### 抓取所有的数据
+
+`$*` ：所有命令行参数以空格组合成的单独字符串
+
+`$@`：所有命令行参数以空格组合各自独立的单词，可以遍历。
+
+```shell
+$ cat test12.sh
+#! /bin/bash
+# 测试 $* $@
+echo
+count=1
+
+for param in "$*"
+do
+  echo "\$* Parameter #$count = $param"
+  count=$[ $count + 1 ]
+done
+
+echo
+count=1
+
+for param in "$@"
+do
+  echo "\$@ Parameter #$count = $param"
+  count=$[ $count + 1 ]
+done
+$ chmod u+x test12.sh
+$ ./test12.sh andy jack tony lee
+
+$* Parameter #1 = andy jack tony lee
+
+$@ Parameter #1 = andy
+$@ Parameter #2 = jack
+$@ Parameter #3 = tony
+$@ Parameter #4 = leeca
+```
+
+#### 14.3 移动变量
+
+`shift`命令
+
+
+
+#### 14.4 处理选项
+
+**选项**：跟在单波折线后面的单个字母。
+
+##### 查找选项
+
+
+
+##### 使用getopt命令
+
+
+
+##### 使用更高级的getopts
+
+
+
+#### 14.5 将选项标准化
+
+
+
+![](../images/linux-018.jpg)
+
+
+
+#### 14.6 获得用户输入
+
+##### 基本的读取
+
+`read`
+
+```shell
+echo -n "Enter your name: "
+read name
+echo "Hello $name, welcome to my program. "
+```
+
+```shell
+read -p "Please enter your age: " age 
+days=$[ $age * 365 ]
+echo "That makes you over $days days old! "
+```
+
+```shell
+read -p "Enter your name: " first last 
+echo "Checking data for $last, $first..."
+```
+
+`$REPLY`
+
+```shell
+read -p "Enter your name: "
+echo
+echo Hello $REPLY, welcome to my program.
+```
+
+##### 超时
+
+```shell
+if read -t 5 -p "Please enter your name: " name
+then
+  echo "Hello $name, welcome to my script" 
+else
+  echo 
+  echo "Sorry, too slow! "
+fi
+```
+
+
+
+##### 隐藏方式读取
+
+
+
+##### 从文件中读取
+
+
+
+### 15 呈现数据
+
+#### 15.1 􏲐􏾭􏳟􏷑􏶷􏳟􏿇理解输入和输出
+
+ 􏰾􏱅􏶝􏳝􏴝􏴞􏱔􏱅􏶝􏶟􏳅 脚本输出的方法：
+
+- 在显示器屏幕上显示输出；
+- 将输出重定向到文件中；
+
+- 一部分在显示器上显示，一部分不保存到文件中；
+
+
+
+##### 标准文件描述符
+
+Linux将每个对象当作文件处理，用**文件描述符（file descriptor）**来标识，它为非负整数。前三个（0、1、2）用来：
+
+| 文件描述符 | 缩写   | 描述     |
+| ---------- | ------ | -------- |
+| 0          | STDIN  | 标准输入 |
+| 1          | STDOUT | 标准输出 |
+| 2          | STDERR | 标准错误 |
+
+`>` 是重定向到文件，`>>`是追加到文件
+
+当命令上场错误消息时，shell并未将错误消息重定向到输出重定向文件。
+
+shell􏴪􏲢􏰜􏰝􏳚􏳛􏰅􏲌􏲍􏱸􏵑􏴙􏳹􏰒􏰓􏰑􏲬􏰅􏰭对于错误消息的处理是跟普通输出分开的。
+
+##### 重定向错误
+
+
+
+1. 只重定向错误
+
+```shell
+# ll -a badfile 2>test4
+# cat test4
+ls: 无法访问badfile: 没有那个文件或目录
+```
+
+2. 重定向错误和数据
+
+```shell
+# ll -a test test3 test4 badtest 2>test6 1>test7
+# cat test6
+ls: 无法访问test: 没有那个文件或目录
+ls: 无法访问badtest: 没有那个文件或目录
+# cat test7
+-rw-r--r--. 1 root root  0 6月   2 17:13 test3
+-rw-r--r--. 1 root root 53 6月   2 17:19 test4
+```
+
+3. 特殊的重定向符号`&>`
+
+STDOUT和STDERR都重定向到同一个输出文件。
+
+```shell
+# ll -a test test3 test4 badtest &>test7
+# cat test7
+ls: 无法访问test: 没有那个文件或目录
+ls: 无法访问badtest: 没有那个文件或目录
+-rw-r--r--. 1 root root  0 6月   2 17:13 test3
+-rw-r--r--. 1 root root 53 6月   2 17:19 test4
+```
+
+
+
+#### 15.2 在脚本中重定向输出
+
+##### 临时重定向
+
+```shell
+$ vim test8
+#!/bin/bash
+# tsting STDERR messages
+
+echo "This is an error" >&2
+echo "This is normal output"
+```
+
+`>&2`表示将输出信息重定向为STDERR文件描述符
+
+```shell
+$ chmod u+x test8
+$ ./test8
+This is an error
+This is normal output
+```
+
+默认情况下，Linux会将STDERR导向到STDOUT。
+
+```shell
+$ ./test8 2>test9
+This is normal output
+$ cat test9
+This is an error
+```
+
+##### 永久重定向
+
+```shell
+$ vim test10
+#!/bin/bash
+# redirecting all output to a file
+
+exec 1>testout
+echo "This is a test of redirecting all output"
+echo "from a script to another file."
+echo "without having to redirect every individual line"
+```
+
+
+
+```shell
+$ chmod u+x test10
+$ ./test10
+$ cat testout
+This is a test of redirecting all output
+from a script to another file.
+without having to redirect every individual line
+```
+
+`exec`命令会重启一个新shell并将STDOUT文件描述符重定向到文件中。
+
+```shell
+$ cat test11
+#!/bin/bash
+# redirecting output to different locations
+
+exec 2>testerror
+
+echo "This is the start of the script"
+echo "now redirecting all output to another location"
+    
+exec 1>testout
+
+echo "This output should go to the testout file" 
+echo "but this should go to the testerror file" >&2 
+
+$ ./test11
+This is the start of the script
+now redirecting all output to another location
+$ cat testout
+This output should go to the testout file
+$ cat testerror
+but this should go to the testerror file
+```
+
+
+
+#### 15.2 在脚本中重定向输入
+
+将STDIN从键盘重定向到其它位置。
+
+```shell
+$ vim test12
+#!/bin/bash
+# redirecting file input
+
+exec 0< testfile 
+count=1
+
+while read line
+do
+	echo "Line #$count: $line"
+	count=$[ $count + 1 ] 
+done
+```
+
+
+
+```shell
+$ cat testfile
+This is testfile's first line.
+This is testfile's second line.
+This is testfile's third line.
+```
+
+
+
+```shell
+$ chmod u+x test12
+$ ./test12
+Line #1: This is testfile's first line.
+Line #2: This is testfile's second line.
+Line #3: This is testfile's third line.
+```
 
 
 
