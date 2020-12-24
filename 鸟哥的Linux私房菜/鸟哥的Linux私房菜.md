@@ -670,6 +670,56 @@ which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文�
 
 ### 十、Vim
 
+#### 1、vi与vim
+
+在 Linux 􏳹世界中，􏵒绝大􏵓部分的配置􏳹􏴓􏴔文件􏴗是以 ASCII 纯􏳹􏵔文本形态存在，因此利用简单􏳹的文字􏴌􏴍编辑软件就能􏳽够修改设􏴑定了! 
+
+太多 Linux 上􏴽􏳹指令􏴗􏴙􏴚使用 vi 作为数据􏴌􏴍􏳹接口。
+
+
+
+#### 2、vi的使用
+
+##### 三种模式：
+
+- 一般模式
+- 编辑模式。 i/I、o/O、a/A（插入），r/R（取代）。
+- 命令模式。【:  /  ?  】 搜索、读取、存储、大量取代字符、离开、显示行号等动作。
+
+##### 按键说明
+
+###### 一般模式下
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200613162133057.png)
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200613162209372.png)
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200613162252518.png)
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200613162323932.png)
+
+###### 一般模式切换到编辑模式
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200613163144394.png)
+
+###### 一般模式切换到命令模式
+
+![](/Users/andyron/Library/Application Support/typora-user-images/image-20200613163410808.png)
+
+
+
+##### 练习
+
+!!
+
+🔖
+
+#### 3、vim的额外功能
+
+
+
+#### 4、其他vim使用注意事项
+
 
 
 ### 十一、Bash
@@ -709,6 +759,72 @@ which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文�
 
 
 ### 十七、程序管理与SELinux初探
+
+#### 1、什么是程序（process）
+
+在 Linux 􏰦􏰧􏲳中，<u>**触发任何一􏰐个事件**时 􏱵，􏰦􏰧􏱭系统都会将他定义成一个程序􏰝􏰶，􏲣􏴄􏴅并且给予这个程序一个ID ，􏳅成为**PID**，同􏱵时依据这个程序的用户与相关属性关系􏳃􏰽􏰦，给予这􏰬个PID一组有效的权限设定</u>。􏰐􏳩􏱈􏴇从此以后，这个PID能够在系统上进行的动作，就与这个PID的权限有关了。
+
+##### process  与 program
+
+两者都可以翻译为程序，program通常就是指二进制文件；而process就是加载到内存中运行的program，操作系统给process分配了PID，process有时也翻译成进程。
+
+同样的program`/bin/bash`在不同用户登录时，执行为不同的process，分配了不同的PID：
+
+![](../images/linux-020.jpg)
+
+
+
+###### 子程序与父程序
+
+Parent PID(PPID)
+
+执行`bash`，进入子程序环境中，`ps -l`：
+
+```shell
+# ps -l
+F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+4 S     0   3732   3721  0  80   0 - 28886 do_wai pts/0    00:00:00 bash
+4 S     0   3812   3732  0  80   0 - 28886 do_wai pts/0    00:00:00 bash
+0 R     0   3823   3812  0  80   0 - 38337 -      pts/0    00:00:00 ps
+```
+
+> 平常一个程序被关闭后，会再运行，大概率（也有可能是crontab）是被一个父程序调用运行。
+
+###### fork 和 exec：程序调用的流程
+
+![](../images/linux-021.jpg)
+
+
+
+###### 系统或网络服务：常驻在内存的程序
+
+一般`touch`，`ls`，`rm`等程序执行完就结束了。
+
+也有一只在内存中运行的程序，叫服务（daemon）或守护进程。如**crond**（每分钟都会扫描/etc/crontab等文件）、syslog等，还有负责网络方面httpd、postfix、vsftpd等等。
+
+
+
+##### Linux的多人多任务环境
+
+🔖
+
+#### 2、工作管理（job control）
+
+
+
+#### 3、程序管理
+
+
+
+
+
+#### 4、特殊文件与程序
+
+
+
+#### 5、SELinux
+
+
 
 
 

@@ -1,22 +1,6 @@
 
 
-https://blog.csdn.net/yugemengjing/article/details/82469785
 
-
-
-https://github.com/oldratlee/useful-scripts/blob/master/docs/shell.md#-a2l
-
-
-
-https://www.macs.hw.ac.uk/~hwloidl/Courses/LinuxIntro/x945.html
-
-
-
-[Linux命令行与shell脚本编程大全案例](https://github.com/fengyuhetao/shell)
-
-
-
-https://github.com/tinyclub/open-shell-book
 
 
 
@@ -153,6 +137,7 @@ Linux内核采用**虚拟文件系统(Virtual File System，VFS)**作为和每�
 
 #### 4.3 处理数据文件
   - 排序数据
+
   	  + `sort tmp.txt` 以文件每行的的字符排序显示
   	  +  `sort -n tmp.txt` 把数字识别成字符而不是字符
   	  +  `sort -t ':' -k 3 -n /etc/passwd` 对/etc/passwd的每行以：分隔，再议分隔后的第三个参数排序显示
@@ -1836,3 +1821,81 @@ Line #3: This is testfile's third line.
 
 
 
+??
+
+
+
+### 16 控制脚本
+
+以实时模式在命令行界面运行
+
+以shell脚本运行
+
+#### 16.1 处理信号
+
+Linux􏸊􏳖􏷝􏷞􏶍利用信号与运行系统中的进程进行通信。
+
+##### 重温Linux信号
+
+Linux系统和应用程序可以生成超过30个信号。Linux编程时常见有：
+
+| 信号 | 值      | 描述                           |
+| ---- | ------- | ------------------------------ |
+| 1    | SIGHUP  | 挂起进程                       |
+| 2    | SIGINT  | 终止进程                       |
+| 3    | SIGQUIT | 停止进程                       |
+| 9    | SIGKILL | 无条件终止进程                 |
+| 15   | SIGTERM | 尽可能终止进程                 |
+| 17   | SIGSTOP | 无条件停止进程，但不是终止进程 |
+| 18   | SIGTSTP | 停止或暂停进程，但不终止进程   |
+| 19   | SIGCONT | 继续运行停止的进程             |
+
+??
+
+## 三、高级shell脚本编程
+
+
+
+### 17 创建函数
+
+
+
+### 18 图形化桌面环境中的脚本编程
+
+
+
+### 19 初始sed和gawk
+
+
+
+
+
+### 20 正则表达式
+
+
+
+### 21 sed进阶
+
+
+
+### 22 gawk进阶
+
+
+
+### 23 使用其他shell
+
+
+
+## 四、创建实用的脚本
+
+
+
+### 24 编写简单的脚本实用工具
+
+
+
+### 25 创建于数据库、Web及电子邮件相关的脚本
+
+
+
+### 26 一些小有意思的脚本

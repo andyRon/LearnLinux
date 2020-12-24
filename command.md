@@ -185,6 +185,53 @@ init 5 			切换当前系统的运行级别
 
 
 
+#### shutdown
+
+```shell
+sudo shutdown [-h | -r | -s] [time]
+```
+
+`-h` ：关机（halt）
+
+`-r` ：重启（reboot）
+
+`-s` ：休眠（sleep）
+
+`time` ：执行操作的时间
+
+- yymmddhhmm ：指定年月日时分，如 17022318 表示2017年2月23日18时
+- now ：现在
+- +n ：n分钟后
+- hh:mm ：今天某时某分
+
+
+
+```shell
+在 2017年2月23日18时 关机
+sudo shutdown -h 1702231800
+
+sudo shutdown -h now 
+
+立刻重启
+sudo shutdown -r now
+
+今晚 20 点休眠
+sudo shutdown -s 20:00
+
+30分钟休眠
+sudo shutdown -s +30
+```
+
+
+
+##### 其它关机重启命令
+
+
+立刻关机：`sudo halt`
+立刻重启：`sudo reboot`
+
+
+
 ## 快捷键
 
 `ctrl + a`   跳到命令最前面
