@@ -1,172 +1,561 @@
+《Linux命令行与shell脚本编程大全-第3版》
+---------
 
-
-
-
-
-
-
-# 《Linux命令行与shell脚本编程大全-第3版》
-
-
+https://www.wiley.com/go/linuxcommandline
 
 ## 一、Linux命令行
 
-### 1. 初识Linux shell
+### 1 初识Linux shell
 Linux的组成：**Linux内核**、**GNU工具**、**图形化桌面环境**、**应用软件**。
 
-内核的四种功能：**系统内存管理**、**软件程序管理**、**硬件设备管理**、**文件系统管理**
+![](../../images/linux-022.jpg)
 
-**设备文件**（Linux把硬件当成的特殊文件）
-**字符型设备文件** - 处理数据时每次只能处理一个字符的设备。如调制解调器和终端。
-**块设备文件** -  处理数据时每次能处理大块数据的设备。如硬盘。
-**网络设备文件** - 采用数据包发送和接收数据的设备。如网卡，回环设备。
+#### Linux内核
+
+内核的四种功能：**系统内存管理**、**软件程序管理**、**硬件设备管理**、**文件系统管理**。
+
+##### 1 系统内存管理
+
+内核不仅管理物理内存，还可以创建和管理虚拟内存。
+
+**交换空间**（Swap space）在物理内存（RAM）被充满时被使用。如果系统需要更多的内存资源，而物理内存已经充满，内存中不活跃的页就会被移到交换空间去。
+
+**虚拟内存**是文件数据交叉链接的活动文件。
+
+![](../../images/linux-023.jpg)
+
+内存存储单元按组划分成很多块，这些块就是**页面（page）**。内核将每个内存页面放在物理内存或交换空间。然后，内核会维护一个**内存页面表**，指明哪些页面位于物理内存内，哪些页面被换到了磁盘上。
+内核会记录哪些内存页面正在使用中，并自动把一段时间未访问的内存页面复制到交换空间区域（称为**换出**，swapping out）——即使还有可用内存。
+
+当程序要访问一个已被换出的内存页面时，内核必须从物理内存换出另外一个内存页面给它让出空间，然后从交换空间**换入**请求的内存页面。显然，这个过程要花费时间，拖慢运行中的进程。只要Linux系统在运行，为运行中的程序换出内存页面的过程就不会停歇。
+
+##### 2 软件程序管理
+
+内核创建了第一个进程（称为**<font color=#FF8C00>init进程</font>**）来启动系统上所有其他进程。当内核启动时，它会将init进程加载到虚拟内存中。内核在启动任何其他进程时，都会在虚拟内存中给新进程分配一块专有区域来存储该进程用到的数据和代码。
+一些Linux发行版使用一个表（`/etc/inittab`）来管理在系统开机时要自动启动的进程。
+另外一些发行版（比如Ubuntu ）则采用`/etc/init.d`目录，将开机时启动或停止某个应用的脚本放在这个目录下。这些脚本通过`/etc/rcX.d`目录下的入口（entry）启动，这里的X代表运行级（runlevel）。
+
+##### 3 硬件设备管理
+
+任何Linux系统需要与之通信的设备，都需要在内核代码中加入其**驱动程序代码**。驱动程序代码相当于应用程序和硬件设备的中间人，允许内核与设备之间交换数据。
+
+在Linux内核中有两种方法用于插人设备驱动代码：
+
+- 编译进内核的设备驱动代码
+- 可插入内核的设备驱动模块
+
+以前，插入设备驱动代码的唯一途径是重新编译内核。每次给系统添加新设备，都要重新编译一遍内核代码。随着Linux内核支持的硬件设备越来越多，这个过程变得越来越低效。不过好在Linux开发人员设计出了一种更好的将驱动代码插入运行中的内核的方法。
+
+开发人员提出了**内核模块**的概念。它允许将驱动代码插入到运行中的内核而无需重新编译内核。同时，当设备不再使用时也可将内核模块从内核中移走。这种方式极大地简化和扩展了硬件设备在Linux上的使用。
+
+Linux把硬件当成的特殊文件，称为**设备文件**，分为3类：
+
+- **字符型设备文件** —— 处理数据时每次只能处理一个字符的设备。如调制解调器和终端。
+- **块设备文件**   处理数据时每次能处理大块数据的设备。如硬盘。
+- **网络设备文件** —— 采用数据包发送和接收数据的设备。如网卡，回环设备。
+
+##### 4 文件系统管理
+
+![](../../images/linux-024.jpg)
 
 Linux内核采用**虚拟文件系统(Virtual File System，VFS)**作为和每个文件系统交互的接口。
 
-### 2. 基础知识
+这为Linux内核同任何类型文件系统通信提供了一个标准接口。当每个文件系统都被挂载和使用时，VFS将信息都缓存在内存中。
 
-* **swap space&=** 交换空间
-* **page** 页面 	物理内存或交换空间
-* `/proc/meminfo`
-* **共享内存页面**	 多个进程可在同一块共用内存区域进行读取和写入操作。 
-`ipcs -m`
-* 系统开机自动启动的进程：  
-`/etc/inittab`  
-	`/etc/init.d`	`/etc/rcX.d`  
-* 硬件设备管理
-  - 编译进内核的设备驱动代码
-  - 可插入讷河的设备驱动模块
-* **设备文件**
-  - 字符型 每次只能处理一个字符的设备。如调制解调器和终端。
-  - 块设备 每次能处理大块数据的设备。如硬盘。
-  - 网络设备	采用数据包发送和接收数据的设备。如网卡，回环设备。
-* 设备的 **主设备号** **次设备号**	  
-		[root@localhost dev]# ls -al sda* ttyS*
-		brw-rw----. 1 root disk    8,  0 Dec 12  2014 sda
-		brw-rw----. 1 root disk    8,  1 Dec 12  2014 sda1
-		brw-rw----. 1 root disk    8,  2 Dec 12  2014 sda2
-		crw-rw----. 1 root dialout 4, 64 Dec 12  2014 ttyS0
-		crw-rw----. 1 root dialout 4, 65 Dec 12  2014 ttyS1
-		crw-rw----. 1 root dialout 4, 66 Dec 12  2014 ttyS2
-		crw-rw----. 1 root dialout 4, 67 Dec 12  2014 ttyS3
-		
-> mac 的 /proc/meminfo ?
+#### GNU工具
 
-* linux内核采用虚拟文件系统（VFS）作为和每个文件系统交互的接口。当每个文件系统被挂载和是使用时，VFS将信息都缓存在内存中。
-* GNU工具链
-	- coreutils(core utilities)软件包
-		+ 处理文件
-		+ 操作文本
-		+ 管理进程
-	- shell 为用户提供了启动程序，管理文件系统上的文件以及管理运行在Linux系统上的进程的途径。  
-	**命令行提示符**  
-	**shell**  
-* terminfo数据库 （和终端模拟器通信时使用的控制码）  
-常见位置：`/usr/share/terminfo`,`/etc/terminfo`,`/lib/terminfo`  
-`infocmp`  
-	`echo $TERM`	目前使用哪个终端		
+除了由内核控制硬件设备外，操作系统还需要工具来执行一些标准功能，比如<u>控制文件和程序</u>。
 
-### 3. 基本bash shell 命令
+Linus在创建Linux系统内核时，并没有可用的系统工具。然而他很幸运，就在开发Linux内核的同时，有一群人正在互联网上共同努力，模仿Unix操作系统开发一系列标准的计算机系统工具。
+[GNU组织](https://www.gnu.org/)（GNU是**<font color=#FF8C00>GNU’s Not Unix</font>**的缩写）开发了一套完整的Unix工具，但没有可以运行它们的内核系统。这些工具是在名为开源软件（open source software，**OSS**）的软件理念下开发的。
+开源软件理念允许程序员开发软件，并将其免费发布。任何人都可以使用、修改该软件，或将该软件集成进自己的系统，无需支付任何授权费用。将Linus的Linux内核和GNU操作系统工具整合起来，就产生了一款完整的、功能丰富的免费操作系统。
+尽管通常将Linux内核和GNU工具的结合体称为Linux，但你也会在互联网上看到一些Linux纯粹主义者将其称为**GNU/Linux系统**，藉此向GNU组织所作的贡献致意。
+
+##### GNU核心工具
+
+###### 用以处理文件的工具
+
+###### 用以操作文件的工具
+
+###### 用以管理进程的工具
+
+
+
+##### shell
+
+GNU/Linux shell是一种特殊的交互式工具。它为用户提供了启动程序、管理文件系统中的文件以及运行在Linux系统上的进程的途径。sell的核心是命令行提示符。命令行提示符是shell负责交互的部分。它允许你输人文本命令，然后解释命令，并在内核中执行。
+
+| shell | 描述                                                         |
+| ----- | ------------------------------------------------------------ |
+| bash  | 默认的shell                                                  |
+| ash   | 一种运行在内存受限环境中简单的轻量级shell，但与bash shell完全兼容 |
+| korm  | 一种与Bourne shell兼容的编程shell，但支持如关联数组和浮点运算等一些高级的编程特性 |
+| tcsh  | 一种将C语言中的一些元素引人到shell脚本中的shell              |
+| zsh   | 一种结合了bash、tcsh和korm的特性，同时提供高级编程特性、共享历史文件和主题化提示符的高级shell |
+
+
+
+#### Linux桌面环境
+
+##### X Window系统
+
+##### KDE桌面
+
+##### GNOME桌面
+
+##### Unity桌面
+
+
+
+#### Linux发行版
+
+不同Linux发行版通常可以分为：
+
+- 完整的核心Linux发行版
+- 特定用途的发行版
+- LiveCD测试发行版
+
+![](../../images/linux-025.jpg)
+
+![](../../images/linux-026.jpg)
+
+![](../../images/linux-027.jpg)
+
+
+
+### 3 基本bash shell 命令
+
+#### 3.1 启动shell
+
+`/etc/passwd`文件包含了所有系统用户账户列表以及每个用户的基本配置信息。
+
+```
+christine:x:501:501:ChristineBresnahan:/home/christine:/bin/bash
+```
+
+#### 3.2 shell提示符
+
+`$`
+
+#### 3.3 bash手册
+
+`man`
+
+忘记命令名时：
+
+```shell
+man -k 关键字
+
+man -k terminal
+```
+
+![](../../images/linux-028.jpg)
+
+> 注意阅读命令的手册，特别是**DESCRIPTION**的前两段，这里有各种技术行话。
+
+在手册第一行左右的命令名后括号里有个数字，叫做区域号，它们的意思：
+
+| 区域号 | 所涵盖的内容             |
+| ------ | ------------------------ |
+| 1      | 可执行程序或shell命令    |
+| 2      | 系统调用                 |
+| 3      | 库调用                   |
+| 4      | 特殊文件                 |
+| 5      | 文件格式与约定           |
+| 6      | 游戏                     |
+| 7      | 概览、约定及杂项         |
+| 8      | 超级用户和系统管理员命令 |
+| 9      | 内核例程                 |
+
+#### 3.4 浏览文件系统
+
+
 
 #### 3.5 文件和目录列表
 
-* `ls -F` 区分目录和文件
-* `ls -R` 列出包含的目录中的文件
-* `ls -c` 按最后一次修改时间排序
+```shell
+# 区分目录和文件
+ls -F
+# 列出包含的目录中的文件
+ls -R
+# 按最后一次修改时间排序
+ls -c
+ls -a
+ls -l
+# 列出目录本身信息，不列出其中的内容
+ls -d
+
+ls -l my_script
+ls -l my_scr?pt
+ls -l my_*
+ls -l my_sc*t
+ls -l my_scr[ai]pt
+ls -l f[a-i]ll
+ls -l f[!a]ll
+```
 
 #### 3.6 处理文件
 
-* `touch` 
-* `cp`  
-    * `ls -i data_file`  查看inode编号
-    *  **软连接（符号链接）**  类似于windows系统中的快捷方式，与硬链接不同，软链接就是一个普通文件，只是数据块内容有点特殊，文件用户数据块中存放的内容是另一文件的路径名的指向  `ln -s data_file sl_data_file`  
-    *   **硬链接**：多个文件名指向同一索引节点(Inode)  。  `ln code_file hl_code_file` 
+##### 创建文件
 
-* `mv` 移动、重命名
-*  `rm -i file`   -i提示是不是真的要删除。bash shell中没有回收站。
+```bash
+touch test_one
+# 改变文件的修改时间
+touch test_one
+# 修改文件访问时间
+touch -a test_one
+# 查看文件访问时间
+ls -l --time=atime test_one
+```
+
+##### 复制文件
+
+```bash
+cp source destination
+
+cp test_one test_two
+ls -l test_*
+-rw-rw-r--. 1 andy andy 0 1月  30 11:53 test_one
+-rw-rw-r--. 1 andy andy 0 1月  30 11:53 test_two
+# -i让shell询问是否覆盖已有文件
+cp -i test_one test_two
+cp：是否覆盖"test_two"？ n
+
+# 复制整个目录
+cp -R Scripts/ Mod_scropts
+```
+
+##### 制表键自动补全
+
+
+
+##### 链接文件
+
+**软连接（符号链接）**  类似于windows系统中的快捷方式，与硬链接不同，软链接就是一个普通文件，只是数据块内容有点特殊，文件用户数据块中存放的内容是另一文件的路径名的指向。 
+
+**硬链接**：多个文件名指向同一索引节点(Inode)  ，本质是同一个文件，知识文件名不同。
+
+```bash
+# 软连接
+ln -s data_file sl_data_file 
+ls -li *data_file
+17241917 -rw-rw-r--. 1 andy andy 5452 1月  30 15:46 data_file
+17241918 lrwxrwxrwx. 1 andy andy    9 1月  30 15:47 sl_data_file -> data_file
+
+# 硬链接
+ln code_file hl_code_file
+ls -li *code_file
+19178791 -rw-rw-r--. 2 andy andy 144 1月  30 15:45 code_file
+19178791 -rw-rw-r--. 2 andy andy 144 1月  30 15:45 hl_code_file
+```
+
+##### 重命名文件
+
+`mv` 移动、重命名
+
+##### 删除文件
+
+```bash
+# -i提示是不是真的要删除，加入-i是个好习惯。bash shell中没有回收站。
+rm -i file  
+rm -i f?le
+```
+
+
 
 #### 3.7 处理目录
-- mkdir
-- rmdir
-- `rm -ri My_Dir`  -r进入目录
-`rm -rf`  谨慎使用
+```bash
+mkdir
+# 删除空目录
+rmdir
+# -r进入目录
+rm -ri My_Dir
+# 谨慎使用，特别是拥有超级用户权限
+rm -rf 
+```
+
+
 
 #### 3.8 查看文件内容
--  `stat` 查看文件信息
--  `file my_file`
--  `cat -n`  加行号
-`cat -b`   只给文本加行号
-`cat -T`  去除制表符
-- `more`
-- `less`
-- `tail -n 2 log_file`
--  `head`
 
-### 4. 更多bash shell 命令
+```bash
+# 查看文件类型
+file my_file
+# 查看文件信息
+stat
+
+# 加行号
+cat -n  
+# 只给文本加行号
+cat -b  
+# 去除制表符
+cat -T
+more
+# more的升级版
+less
+
+# 显示最后两行
+tail -n 2 log_file
+head
+```
+
+
+
+### 4 更多bash shell 命令
 
 #### 4.1 监测程序  
-  + `ps`  只显示某个特定时间点的信息
-    
-     * `ps -ef` 查看所有进程的完整形式
-     * `ps -l`	更多信息
-  * `ps -H`  简单的树状形式	
 
-+ 实时监测进程
-     - linux系统管理的要点在于*如何定义系统的高负载*
-     - `top`
-  + 结束进程
-  	 - xnix系统通过向运行的进程发送*进程信号*来已特定方式结束进程
-  	 - `kill -l` 可以查看linux上的进程信号，默认是15-TERM-尽可能终止，1-HUP-挂起，2-INT-中断等
-  	 - `kill -s HUP 3940` kill只能识别进程号，通过ps或top命令查看进程是否停止
-  	 - `killall http*` 可通过进程名，或者通配符。**当用root登陆时，注意**
+##### 探查进程
 
-#### 4.2 监测磁盘空间
+默认`ps`命令只会显示运行在当前控制台下的属于当前用户的进程。
 
-  + 挂载存储媒体
-     - `mount` 
-     
-       提供四种信息：媒体的设备文件名，挂载点，文件系统类型，访问状态。如： `dev/sda1 on /boot type xfs (rw,relatime,seclabel,attr2,inode64,noquota)`
-     
-       `mount -t vfat /dev/sdb1 /media/disk` 把设备/dev/sdb1以vfat文件系统挂载到/media/disk上
-     
-       `mount -t iso9660 -o loop test.iso /mnt` 把test.iso文件挂载到/mnt上，`-o loop`代表挂载一个文件
-     
-     - `umount /mnt` 或 `umount test.iso` 卸载文件test.iso
+```bash
+$ ps
+   PID TTY          TIME CMD
+ 74299 pts/0    00:00:00 bash
+ 74824 pts/0    00:00:00 ps
+```
+
+`ps`命令支持3种不同类型的命令行参数：
+
+###### **1.Unix风格——单破折线**
+
+```bash
+$ ps -ef
+UID         PID   PPID  C STIME TTY          TIME CMD
+root          1      0  0 1月29 ?       00:00:07 /usr/lib/systemd/systemd --system --deserialize 16
+root          2      0  0 1月29 ?       00:00:00 [kthreadd]
+root          4      2  0 1月29 ?       00:00:00 [kworker/0:0H]
+root          6      2  0 1月29 ?       00:00:35 [ksoftirqd/0]
+root          7      2  0 1月29 ?       00:00:00 [migration/0]
+root          8      2  0 1月29 ?       00:00:00 [rcu_bh]
+root          9      2  0 1月29 ?       00:00:07 [rcu_sched]
+root         10      2  0 1月29 ?       00:00:00 [lru-add-drain]
+...
+```
+
+`-e`显示所有进程，`-f`完整格式。
+
+**C**：进程生命周期中的CPU利用率。
+
+**STIME**：进程启动时的系统时间。
+
+**TTY**：进程启动时的终端设备。
+
+**TIME**：运行进程需要的累计CPU时间。
+
+**CMD**：启动的程序名称。
+
+```bash
+$ ps -l
+F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+4 S  1000  74299  74298  0  80   0 - 28917 do_wai pts/0    00:00:00 bash
+0 R  1000  74901  74299  0  80   0 - 38331 -      pts/0    00:00:00 ps
+```
+
+`-l`长格式输出。
+
+**F**：内核分配给进程的系统标记。
+**S**：进程的状态（0代表正在运行；S代表在休眠；R代表可运行，正等待运行；Z代表僵化，进程已结束但父进程已不存在；T代表停止）。
+**PRI**：进程的优先级（越大的数字代表越低的优先级）。
+**NI**：谦让度值用来参与决定优先级。
+**ADDR**：进程的内存地址。
+**sz**：假如进程被换出，所需交换空间的大致大小。
+**WCHAN**：进程休眠的内核函数的地址。
+
+![](../../images/linux-029.jpg)
+
+```bash
+ps -eH
+```
+
+
+
+###### **2.BSD风格——不加破折线**
+
+BSD (Berkeley Software Distribution，伯克利软件套件)是Unix的衍生系统，在1977至1995年间由加州大学伯克利分校开发和发布的。
+
+BSD风格与Unix风格有许多细小的不同。
+
+```bash
+$ ps l
+F   UID    PID   PPID PRI  NI    VSZ   RSS WCHAN  STAT TTY        TIME COMMAND
+4  1000  74299  74298  20   0 115668  2172 do_wai S    pts/0      0:00 bash
+0  1000  74921  74299  20   0 153324  1492 -      R+   pts/0      0:00 ps l
+```
+
+
+
+![](../../images/linux-030.jpg)
+
+###### **3.GNU风格长参数——双破折线**
+
+![](../../images/linux-031.jpg)
+
+```bash
+$ ps --forest
+   PID TTY          TIME CMD
+ 74299 pts/0    00:00:00 bash
+ 74927 pts/0    00:00:00  \_ ps
+```
+
+##### 实时监测进程
+
+`ps`只能显示某个特定时间点的信息，`top`实时显示进程信息。
+
+```bash
+top - 16:26:25 up 1 day,  5:54,  2 users,  load average: 0.00, 0.01, 0.05
+Tasks: 104 total,   1 running, 103 sleeping,   0 stopped,   0 zombie
+%Cpu(s):  0.3 us,  0.3 sy,  0.0 ni, 99.3 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st
+KiB Mem :   995684 total,   134288 free,   230560 used,   630836 buff/cache
+KiB Swap:  2097148 total,  2093820 free,     3328 used.   599672 avail Mem
+
+   PID USER      PR  NI    VIRT    RES    SHR S %CPU %MEM     TIME+ COMMAND
+ 19521 root      20   0  264996   2972   1832 S  1.0  0.3   9:05.58 vmtoolsd
+   403 root      20   0       0      0      0 S  0.3  0.0   3:39.28 xfsaild/dm-0
+  1427 root      20   0  156792   1924    596 S  0.3  0.2   0:17.08 sshd
+ 74900 root      20   0       0      0      0 S  0.3  0.0   0:00.77 kworker/0:0
+ 74928 root      20   0       0      0      0 S  0.3  0.0   0:00.01 kworker/0:2
+     1 root      20   0   46348   5428   2804 S  0.0  0.5   0:07.18 systemd
+     2 root      20   0       0      0      0 S  0.0  0.0   0:00.61 kthreadd
+     4 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 kworker/0:0H
+     6 root      20   0       0      0      0 S  0.0  0.0   0:36.28 ksoftirqd/0
+     7 root      rt   0       0      0      0 S  0.0  0.0   0:00.00 migration/0
+     8 root      20   0       0      0      0 S  0.0  0.0   0:00.00 rcu_bh
+     9 root      20   0       0      0      0 S  0.0  0.0   0:07.20 rcu_sched
+    10 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 lru-add-drain
+    11 root      rt   0       0      0      0 S  0.0  0.0   1:09.96 watchdog/0
+    13 root      20   0       0      0      0 S  0.0  0.0   0:00.00 kdevtmpfs
+    14 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 netns
+    15 root      20   0       0      0      0 S  0.0  0.0   0:00.14 khungtaskd
+    16 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 writeback
+    17 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 kintegrityd
+    18 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 bioset
+    19 root       0 -20       0      0      0 S  0.0  0.0   0:00.00 bioset
+...
+```
+
+```bash
+top - 16:26:25 up 1 day,  5:54,  2 users,  load average: 0.00, 0.01, 0.05
+```
+
+第一行分别是当前时间、系统运行时间、登录的用户数以及系统的平均负载。
+
+平均负载有3个值：最近1分钟的、最近5分钟的和最近15分钟的平均负载。值越大说明系统的负载越高。由于进程短期的突发性活动，出现最近1分钟的高负载值也很常见，但如果近15分钟内的平均负载都很高，就说明系统可能有问题。
+
+> Linux系统管理的要点在于定义究竟到什么程度才算是高负载。这个值取决于系统的硬件配置以及系统上通常运行的程序。对某个系统来说是高负载的值可能对另一系统来说就是正常值。通常，如果系统的负载值超过了**2**，就说明系统比较繁忙了。
+
+第二行显示了**进程概要信息**，top命令的输出中将进程叫作**任务（task）**：有多少进程处在运行、休眠、停止或是僵化状态（僵化状态是指进程完成了，但父进程没有响应）。 
+
+第三行显示了**CPU的概要信息**。top根据进程的属主（用户还是系统）和进程的状态（运行、空闲还是等待）将CPU利用率分成几类输出。
+
+第四、五行说明了**系统内存的状态**。第四行是系统的物理内存：总共有多少内存，当前用了多少，还有多少空闲。第五行说的是同样的信息，不过是针对系统交换空间（如果分配了的话）的状态而言的。
+
+再下面显示的就是当前运行中的进程的详细列表，有些列跟ps命令的输出类似。
+**PID**：进程的ID。
+**USER**：进程属主的名字。
+**PR**：进程的优先级。
+**NI**：进程的谦让度值。
+**VIRT**：进程占用的虚拟内存总量。
+**RES**：进程占用的物理内存总量。
+**SHR**：进程和其他进程共享的内存总量。
+**S**：进程的状态（D代表可中断的休眠状态，R代表在运行状态，S代表休眠状态，T代表跟踪状态或停止状态，Z代表僵化状态）。
+**%CPU**：进程使用的CPU时间比例。
+**%MEM**：进程使用的内存占可用内存的比例。
+**TIME+**：自进程启动到目前为止的CPU时间总量。
+**COMMAND**：进程所对应的命令行名称，也就是启动的程序名。
+
+默认情况下，top命令在启动时会按照**%CPU**值对进程排序。
+
+可以在top运行时使用多种交互命令重新排序。每个交互式命令都是**单字符**，在top命令运行时键入可改变top的行为。
+
+键入`f`进入选择排序字段界面，键入`d`允许你修改轮询间隔，键入`q`可以退出top。
+
+##### 结束进程
+
+作为系统管理员，很重要的一个技能就是知道**何时以及如何结束一个进程**。有时进程挂起了只需要动动手让进程重新运行或结束就行了。但有时，有的进程会耗尽CPU且不释放资源。在这两种情景下，你就需要能控制进程的命令。Linux沿用了Unix进行进程间通信的方法。
+
+在Linux中，进程之间通过**信号**来通信。进程的信号就是预定义好的一个消息，进程能识别它并决定忽略还是作出反应。
+
+进程如何处理信号是由开发人员通过编程来决定的。大多数编写完善的程序都能接受和处理标准Unix进程信号。
+
+![](../../images/linux-032.jpg)
+
+Linux上有两个命令可以向运行中的进程发出进程信号。
+
+###### 1.`kill`
+
+`kill`命令只能通过进程ID（PID）个进程发信号。默认，`kill`会向给出PID发送一个**TERM**信号。
+
+只有进程的属主或root用户才能发送进程信号。
+
+```bash
+kill 3940
+
+kill -s HUP 3940
+```
+
+###### 2.`killall`
+
+`killall`支持通过进程名而不是PID来结束进程，支持通配符,当用root登陆时要小心。
+
+```bash
+killall http*
+```
+
+#### 4.2 监测磁盘空间🔖
+
+##### 挂载存储媒体
+
+- `mount` 
+
+  提供四种信息：媒体的设备文件名，挂载点，文件系统类型，访问状态。如： `dev/sda1 on /boot type xfs (rw,relatime,seclabel,attr2,inode64,noquota)`
+
+  `mount -t vfat /dev/sdb1 /media/disk` 把设备/dev/sdb1以vfat文件系统挂载到/media/disk上
+
+  `mount -t iso9660 -o loop test.iso /mnt` 把test.iso文件挂载到/mnt上，`-o loop`代表挂载一个文件
+
+- `umount /mnt` 或 `umount test.iso` 卸载文件test.iso
+
   - `df`
   - `du -s 目录名` 查看目录的文件总大小
 
 #### 4.3 处理数据文件
-  - 排序数据
+##### 排序数据
 
   	  + `sort tmp.txt` 以文件每行的的字符排序显示
   	  +  `sort -n tmp.txt` 把数字识别成字符而不是字符
   	  +  `sort -t ':' -k 3 -n /etc/passwd` 对/etc/passwd的每行以：分隔，再议分隔后的第三个参数排序显示
   	  +  `sort -sh | sort -nr` r是降序的意思
-  - 搜索数据
-     + `grep RPC /etc/passwd` 匹配/etc/passwd中 含有RPC的行
-     + `grep -v RPC /etc/passwd` 反向匹配
-     + `grep -n RPC /etc/passwd` 显示行号
-     + `grep -c RPC /etc/passwd` 显示多少行匹配
-     + `grep -e t -e f /etc/passwd` 匹配含有字符t或者f的行。类似的正则 `grep [tf] /etc/passwd`
-     + grep的两个衍生版本 `egrep` `fgrep`
-  - 压缩数据
-     + bzip2工具 .bz2
-         * `bzip2`
-         * `bzcat`
-         * `bunzip2`
-         * `bzip2recover`
-     + gzip 工具 .gz
-         * `gzip`
-         * `gzcat`
-         * `gunzip`
-     + zip工具 .zip
-     	 * `zip`
-     	 * `zipcloak`
-     	 * `zipnote`
-     	 * `zipsplit`
-     	 * `unzip`
-     + compress .Z 
-  - `tar`   归档数据
+##### 搜索数据
+
++ `grep RPC /etc/passwd` 匹配/etc/passwd中 含有RPC的行
++ `grep -v RPC /etc/passwd` 反向匹配
++ `grep -n RPC /etc/passwd` 显示行号
++ `grep -c RPC /etc/passwd` 显示多少行匹配
++ `grep -e t -e f /etc/passwd` 匹配含有字符t或者f的行。类似的正则 `grep [tf] /etc/passwd`
++ grep的两个衍生版本 `egrep` `fgrep`
+
+##### 压缩数据
+
++ bzip2工具 .bz2
+    * `bzip2`
+    * `bzcat`
+    * `bunzip2`
+    * `bzip2recover`
++ gzip 工具 .gz
+    * `gzip`
+    * `gzcat`
+    * `gunzip`
++ zip工具 .zip
+	 * `zip`
+	 * `zipcloak`
+	 * `zipnote`
+	 * `zipsplit`
+	 * `unzip`
++ compress .Z 
+
+##### `tar`   归档数据
 
 
 
@@ -1021,7 +1410,7 @@ fi
 
 
 
-#### 12.4 **test**􏴦􏴧命令
+#### 12.4 test命令
 
 if-then语句只能用于测试**命令退出状态码**。其它就要是test命令了。
 
@@ -1057,13 +1446,13 @@ then
 fi
 ```
 
-test􏱖􏸛􏱡􏼡􏽵􏽷􏵍􏲻􏴭􏴖􏰨命令的三类条件判断：数值比较，字符串比较，文件比较
+test命令的三类条件判断：数值比较，字符串比较，文件比较
 
 
 
-##### 数值比较 􏲉 􏲾􏵦􏸒􏴔􏶣
+##### 数值比较 
 
- 􏲉 􏿝􏴖􏴔􏶣![](../images/linux-014.jpg)
+ ![](../../images/linux-014.jpg)
 
 ```shell
 #! /bin/bash
@@ -1111,7 +1500,7 @@ $ ./floating_point_test.sh
 
 ##### 字符串比较
 
-![](../images/linux-015.jpg)
+![](../../images/linux-015.jpg)
 
 ```shell
 #! /bin/bash
@@ -1134,7 +1523,7 @@ fi
 
 ##### 文件比较
 
-􏳯􏺡􏿬􏿭![](../images/linux-016.jpg)
+![](../../images/linux-016.jpg)
 
 文件比较测试是shell编程中最为强大、使用最多的比较形式。
 
@@ -1316,7 +1705,7 @@ fi
 
 ```
  [ condition1 ] && [ condition2 ]
-􏲉 [ condition1 ] || [ condition2 ]
+ [ condition1 ] || [ condition2 ]
 ```
 
 ```shell
@@ -1333,7 +1722,7 @@ if [ -d $HOME ] && [ -w $HOME/testing ]
 (( expression ))
 ```
 
-![](../images/linux-017.jpg)
+![](../../images/linux-017.jpg)
 
 ```shell
 $ cat test23.sh
@@ -1573,7 +1962,7 @@ $@ Parameter #4 = leeca
 
 
 
-![](../images/linux-018.jpg)
+![](../../images/linux-018.jpg)
 
 
 
@@ -1632,9 +2021,9 @@ fi
 
 ### 15 呈现数据
 
-#### 15.1 􏲐􏾭􏳟􏷑􏶷􏳟􏿇理解输入和输出
+#### 15.1 理解输入和输出
 
- 􏰾􏱅􏶝􏳝􏴝􏴞􏱔􏱅􏶝􏶟􏳅 脚本输出的方法：
+ 脚本输出的方法：
 
 - 在显示器屏幕上显示输出；
 - 将输出重定向到文件中；
@@ -1657,7 +2046,7 @@ Linux将每个对象当作文件处理，用**文件描述符（file descriptor�
 
 当命令上场错误消息时，shell并未将错误消息重定向到输出重定向文件。
 
-shell􏴪􏲢􏰜􏰝􏳚􏳛􏰅􏲌􏲍􏱸􏵑􏴙􏳹􏰒􏰓􏰑􏲬􏰅􏰭对于错误消息的处理是跟普通输出分开的。
+shell对于错误消息的处理是跟普通输出分开的。
 
 ##### 重定向错误
 
@@ -1833,7 +2222,7 @@ Line #3: This is testfile's third line.
 
 #### 16.1 处理信号
 
-Linux􏸊􏳖􏷝􏷞􏶍利用信号与运行系统中的进程进行通信。
+Linux利用信号与运行系统中的进程进行通信。
 
 ##### 重温Linux信号
 
@@ -1854,9 +2243,63 @@ Linux系统和应用程序可以生成超过30个信号。Linux编程时常见�
 
 ## 三、高级shell脚本编程
 
-
-
 ### 17 创建函数
+
+#### 17.1 基本的脚本函数
+
+##### 两种创建函数格式
+
+```shell
+function name {
+		commands
+}
+```
+
+```shell
+name() {
+		commands
+}
+```
+
+##### 使用函数
+
+```shell
+$ cat test1
+#!/bin/bash
+
+function func1 {
+	echo "This is an example of a function"
+}
+
+count=1
+while [ $count -le 5 ]
+do 
+	func1
+	count=$[ $count + 1 ]
+done
+
+echo "This is the end of the loop"
+func1
+echo "Now this is the end of the script"
+$
+$ ./test1
+This is an example of a function
+This is an example of a function
+This is an example of a function
+This is an example of a function
+This is an example of a function
+This is the end of the loop
+This is an example of a function
+Now this is the end of the script
+```
+
+<font color=#FF8C00>注意</font>：函数名必须是唯一的，如果重定义了函数，新定义会覆盖原来函数的定义，这不会产生任何错误消息。
+
+#### 17.2 返回值
+
+🔖
+
+
 
 
 
