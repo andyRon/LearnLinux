@@ -1,3 +1,5 @@
+
+
 《Linux命令行与shell脚本编程大全-第3版》
 ---------
 
@@ -976,7 +978,7 @@ drwxr-xr-x 4 root root 4096 2010-09-23 19:01 ..
 
 r w x
 
-![](http://ww2.sinaimg.cn/large/006tNc79ly1g5zlnrd1o6j30li080wfm.jpg)
+![](../../images/linux-027.jpg)
 
 #### 7.4 改变安全性设置
 
@@ -1251,7 +1253,7 @@ $ echo $?
 127
 ```
 
-![](https://tva1.sinaimg.cn/large/006y8mN6ly1g76xn1iuqfj30tq0b2myj.jpg)
+![](../../images/linux-028.jpg)
 
 权限不够的退出状态码是126：
 
@@ -2529,19 +2531,104 @@ The result is 110
 
 ### 19 初始sed和gawk
 
-处理文本文件
+shell脚本最常见的用途就是**处理文本文件**（检查日志文件、读取配置文件、处理数据元素等），shell脚本可以帮助我们将文本文件中各种数据的日常处理任务**自动化**。
+
+sed和gawk工具极大简化了shell脚本需要进行的数据处理任务。
 
 #### 19.1 文本处理
 
+
+
 ##### sed编辑器
 
-sed，stream editor，流编辑器，和普通的交互式文本编辑器（如vim）恰好相反。
+sed（stream editor，**<font color=#FF8C00>流编辑器</font>**），和普通的交互式文本编辑器（如vim）恰好相反。
 
-在交互式文本编辑器中，可以用键盘命令来交互式插入、删除或替换数据中的文本，而流编辑器则会在编辑器处理数据之前基于预先提供的一组规则来编辑数据流。
+在交互式文本编辑器中，可以用键盘命令来交互式插入、删除或替换数据中的文本，而流编辑器则会在编辑器处理数据之前基于预先提供的一组规则来编辑数据流，它善于自动处理文本文件。
+
+sed编辑器会执行下列操作：
+
+1. 一次从输入中读取一行数据。
+2. 根据所提供的编辑器命令匹配数据。
+3. 按照命令修改流中的数据。
+4. 将新的数据输出到STDOUT。
+
+由于命令是按顺序逐行给出，sed编辑器只需要对数据流进行一遍处理就可以完成编辑操作。
 
 
+
+###### 1.在命令行定义编辑器命令
+
+```shell
+$ echo "This is a test" | sed "s/test/big test"
+```
+
+`s`命令指定用第二个文本字符替换第一个文本字符。
+
+> mac 报错`... unterminated substitute in regular expression`，因为定界符不同，改成`|`即可：
+>
+> ```bash
+> $ echo "This is a test" | sed 's|test|big test|'
+> ```
+
+```shell
+$ cat data1.txt
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+$ sed 's|dog|cat|' data1.txt
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy cat.
+```
+
+`sed`不会修改文本文件的数据。
+
+###### 2.使用多个编辑器命令
+
+```shell
+$ sed -e 's|brown|green|;s|dog|cat|' data1.txt
+The quick green fox jumps over the lazy cat.
+The quick green fox jumps over the lazy cat.
+The quick green fox jumps over the lazy cat.
+The quick green fox jumps over the lazy cat.
+```
+
+分号隔开，命令末尾和分好之间不能有空格（有的版本是可以有）。
+
+也可以换行输入，只要首尾有单引号就可以：
+
+```shell
+$ sed -e '
+quote> s|brow|green|
+quote> s|fox|elephant|
+quote> s|dog|cat|' data1.txt
+The quick greenn elephant jumps over the lazy cat.
+The quick greenn elephant jumps over the lazy cat.
+The quick greenn elephant jumps over the lazy cat.
+The quick greenn elephant jumps over the lazy cat.
+```
+
+###### 3.从文件中读取编辑器命令
+
+```shell
+$ cat script1.sed
+s|brow|green|
+s|fox|elephant|
+s|dog|cat|
+$ sed -f script1.sed data1.txt
+The quick greenn elephant jumps over the lazy cat.
+The quick greenn elephant jumps over the lazy cat.
+The quick greenn elephant jumps over the lazy cat.
+The quick greenn elephant jumps over the lazy cat.
+```
+
+> 为了区分sed编辑器脚本文件与bash shell脚本文件搞混，用`.sed`。
 
 ##### gawk程序
+
+gawk比sed编辑器跟进一步，提高一个类编程环境来修改和重新组织文件中的数据。
 
 gawk程序是Unix中原始awk程序的GNU版本。
 
@@ -2549,9 +2636,241 @@ gawk程序是Unix中原始awk程序的GNU版本。
 
 ### 20 正则表达式
 
+在shell脚本中成功运用sed编辑器和gawk程序的关键在于熟练使用正则表达式。
+
+#### 20.1 什么是正则表达式
+
+**模式模板（pattern template）**
+
+![](../../images/linux-029.jpg)
+
+##### 正则表达式的类型
+
+Linux中的不同应用程序可能会用不同类型的正则表达式。这其中包括编程语言（Java、Perl和Python）、Linux实用工具（sed、gawk和grep等）以及主流应用（MySQL、PostgreSQL等）。
+
+正则表达式是通过**正则表达式引擎**（regular expression engine）实现的，它是一套底层软件，负责解释正则表达模式并使用这些模式进行文本匹配。
+
+Linux中，有两种流行的正则表达式引擎：
+
+- POSIX基础正则表达式（basic regular expression，**BRE**）引擎
+- POSIX扩展正则表达式（extended regular expression，B、**ERE**）引擎
+
+sed因为速度方面考虑，只符合了BRE引擎规范的子集。
+
+gawk用ERE引擎来处理它的正则表达式模式。
+
+
+
+#### 20.2 定义BRE模式
+
+##### 纯文本
+
+```shell
+ $ echo "This is a test" | sed -n '/test/p'
+ This is a test
+ $ echo "This is a test" | sed -n '/trial/p'
+ $
+ $ echo "This is a test" | gawk '/test/{print $0}'
+ This is a test
+ $ echo "This is a test" | gawk '/trial/{print $0}'
+ $
+```
+
+
+
+##### 特殊字符
+
+
+
+##### 锚字符
+
+
+
+##### 点号字符
+
+
+
+##### 字符组
+
+
+
+##### 排除型字符组
+
+
+
+##### 区间
+
+
+
+##### 特殊的字符组
+
+![](../../images/linux-030.jpg)
+
+
+
+```shell
+$ echo "abc" | sed -n '/[[:digit:]]/p'
+$
+$ echo "abc" | sed -n '/[[:alpha:]]/p'
+abc
+$ echo "abc123" | sed -n '/[[:digit:]]/p'
+abc123
+$ echo "This is, a test" | sed -n '/[[:punct:]]/p'
+This is, a test
+$ echo "This is a test" | sed -n '/[[:punct:]]/p'
+$
+```
+
+
+
+##### 星号
+
+在字符后面放置星号表明该字符必须在匹配模式的文本中出现0次或多次。
+
+```shell
+$ echo "ik" | sed -n '/ie*k/p'
+ik
+$ echo "iek" | sed -n '/ie*k/p'
+iek
+$ echo "ieek" | sed -n '/ie*k/p'
+ieek
+$ echo "ieeek" | sed -n '/ie*k/p'
+ieeek
+$ echo "ieeeek" | sed -n '/ie*k/p'
+ieeeek
+$
+```
+
+
+
+#### 20. 3 扩展正则表达式（ERE）
+
+##### 问号
+
+问号表示前面的字符可以出现0次或1次。
+
+```shell
+ $ echo "bt" | gawk '/be?t/{print $0}'
+ bt
+ $ echo "bet" | gawk '/be?t/{print $0}'
+ bet
+ $ echo "beet" | gawk '/be?t/{print $0}'
+ $
+ $ echo "beeet" | gawk '/be?t/{print $0}'
+ $
+```
+
+
+
+##### 加号
+
+加哈表明前面的字符可以出现1次或多次。
+
+
+
+##### 花括号
+
+
+
+##### 管道符号
+
+
+
+##### 表达式分组
+
+
+
+#### 20.4 正则实战
+
+##### 目录文件技术
+
+```shell
+
+```
+
+
+
+##### 验证电话号码
+
+
+
+##### 解析邮件地址
+
+
+
+
+
 
 
 ### 21 sed进阶
+
+#### 21.1 多行命令
+
+
+
+##### next
+
+
+
+##### 多行删除命令
+
+
+
+##### 多行打印命令
+
+
+
+#### 21.2 保存空间
+
+**模式空间**（pattern space）是一块活跃的缓冲区，在sed编辑器执行命令时它会保存待检查的文本。
+
+sed编辑器有另外一块称作**保持空间**（hold space）的缓冲区域，在处理模式空间中的某些行时，可以用保持空间来临时保存一些行。
+
+![](../../images/linux-031.jpg)
+
+
+
+#### 21.3 排除命令
+
+
+
+#### 21.4 改变流
+
+
+
+#### 21.5 模式替代
+
+
+
+#### 21.6 在脚本中使用sed
+
+
+
+#### 21.7 创建sed实用工具
+
+
+
+##### 加倍行间距
+
+
+
+##### 对可能含有空白行的文件加倍行间距
+
+
+
+##### 给文件中的行编号
+
+
+
+##### 打印末尾行
+
+
+
+##### 删除行
+
+
+
+##### 删除HTML标签
 
 
 
@@ -2559,7 +2878,47 @@ gawk程序是Unix中原始awk程序的GNU版本。
 
 
 
+#### 22.1 使用变量
+
+
+
+#### 22.2 处理数组
+
+
+
+#### 22.3 使用模式
+
+
+
+#### 22.4 结构化命令
+
+
+
+#### 22.5 格式化打印
+
+
+
+#### 22.6 内建函数
+
+
+
+#### 22.7 自定义函数
+
+
+
 ### 23 使用其他shell
+
+
+
+#### dash shell
+
+
+
+#### zsh shell
+
+
+
+
 
 
 
@@ -2568,6 +2927,18 @@ gawk程序是Unix中原始awk程序的GNU版本。
 
 
 ### 24 编写简单的脚本实用工具
+
+
+
+#### 归档
+
+
+
+#### 管理用户账户
+
+
+
+#### 监测磁盘空间
 
 
 
