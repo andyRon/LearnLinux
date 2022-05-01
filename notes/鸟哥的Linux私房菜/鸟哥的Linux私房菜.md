@@ -7,7 +7,7 @@
 
 ### 准备
 
-学习环境：Mac的VMware Fusion虚拟机，CentOS 7 64位
+学习环境：Mac的VMware Fusion虚拟机，CentOS 7 64位；腾讯云 CentOS 7
 
 查看IP地址的方法：
 
@@ -308,6 +308,14 @@ MANPATH /usr/X11R6/man
 
 ### 5.1 使用者与群组
 
+**owner/group/others** 简写 **u/g/o**
+
+账号相关信息：`/etc/passwd`
+
+账号密码：`/etc/shadow`
+
+群组名称：`/etc/group`
+
 
 
 ### 5.2 Linux文件权限
@@ -316,49 +324,92 @@ MANPATH /usr/X11R6/man
 
 ![](../../images/linux-006.jpg)
 
-第一栏代表这个文件的类型与权限（permission）
+- 第一栏代表这个文件的类型与权限（permission）
 
-第二栏表示有多少文件名链接到此节点（i-node）
+文件类型：d，-， l，b，c
 
-第三栏表示这个文件（或目录）的“拥有者帐号”
+文件权限**rwx**分别表示read、write、execute。三组分别代表**u/g/o**。
 
-第四栏表示这个文件的所属群组
+- 第二栏表示有多少文件名链接到此节点（i-node）
 
-第五栏为这个文件的容量大小，默认单位为Bytes
+- 第三栏表示这个文件（或目录）的“拥有者帐号”
 
-第六栏为这个文件的创建日期或者是最近的修改日期
+- 第四栏表示这个文件的所属群组
 
-第七栏为这个文件的文件名
+- 第五栏为这个文件的容量大小，默认单位为Bytes
+
+- 第六栏为这个文件的创建日期或者是最近的修改日期
+
+- 第七栏为这个文件的文件名
+
+```shell
+drwxr-xr-- 1 test1 testgroup 5238 Jun 19 10:24 groups/
+```
+
+testgroup群组的[r-x]表示同组其它如test2可以进入本目录，但不能再目录下进行写入操作；other的[r--]，没有x权限，不能进入此目录。
+
+
+
+
 
 #### 改变文件属性与权限
 
-chgrp ：改变文件所属群组
+##### chgrp ：改变文件所属群组
 
-chown ：改变文件拥有者
+```shell
+chgrp [-R] group dirname/filename
+```
 
-chmod ：改变文件的权限, SUID, SGID, SBIT等等的特性
+群组group必须已经在/etc/group中已经存在。
 
+##### chown ：改变文件拥有者
 
+```shell
+chown [-R] user[:group] dirname/filename
+```
 
-`# chgrp [-R] group dirname/filename`   	改变文件所属组
+-R表示同时修改目录下所有目录和文件。
 
-`# chown [-R] user[:group] dirname/filename`	改变文件所有者
+##### chmod ：改变文件的权限, SUID, SGID, SBIT等等的特性
 
-`# chmod [-R] xyz dirname/filename`    	
+1. 数字类型
 
-`# chmod u=rwx,go=rx .bashrc`  通过符号类型改变权限
+```shell
+chmod [-R] xyz dirname/filename
+```
 
-![image-20220314184037340](images/image-20220314184037340.png)
+2. 符号类型
+
+```shell
+chmod u=rwx,go=rx .bashrc
+```
+
+![](images/image-20220314184037340.png)
+
+a表示所有身份
 
 #### 目录与文件的权限意义
 
+文件的rwx， 主要针对**文件的内容**而言的。
+
+目录的r表示可以查询该目录下的文件名数据，即可以用`ls` 查看目录的内容；
+
+目录的w很重要，表示可以改变目录下的结构：
+
+1. 建立新的文件与目录； 
+2. 删除已经存在的文件与目录(不论该文件的权限为何！) ；
+3. 将已存在的文件或目录进行更名；
+4.  搬移该目录内的文件、目录位置；
+
+目录的x表示<u>能否进入目录使之成为工作目录</u>，即是否可以`cd`（change directory）。
+
+<font color=#FF8C00>要开放目录给任何人浏览时，应该至少也要给予r及x的权限，但w权限不可随便给！</font>
+
+🔖
 
 
-文件的rwx， 主要针对『文件的内容』而言的
 
-目录的r表示可以查询该目录下的文件名数据，即可以用`ls` 目录的w很重要，表示可以改变目录下的结构，即 1)建立新的档案与目录； 删除已经存在的档案与目录(不论该档案的权限为何！) 将已存在的档案或目录进行更名； 搬移该目录内的档案、目录位置。
 
-目录的x表示能否进入目录使之成为工作目录，即可以`cd`
 
 sudo -s
 
@@ -622,15 +673,26 @@ drwxrwxrwt 7 root root 4096 Sep 27 18:23 /tmp
 
 ### 6.5 命令和文件的搜索
 
-#### 命令文件名的搜寻
+#### 命令的搜寻
 
-`which`
+`which` / `type`
 
-which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文件的!
+```bash
+# which [-a] command
 
-#### 文件文件名的搜索
+[root@VM-16-12-centos ~]# which history 
+/usr/bin/which: no history in (/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/root/bin)
+[root@VM-16-12-centos ~]# type history 
+history is a shell builtin
+```
 
-`whereis`  
+which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文件的！history是内置的命令。
+
+#### 文件的搜索
+
+##### `whereis`  
+
+只查找某些特定目录下面的文件。`whereis -l`可显示其查找的目录。
 
 ```shell
 [root@www ~]# whereis [-bmsu] 档案或目录名 
@@ -638,16 +700,45 @@ which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文�
 -b	:只找二进制格式的文件
 -m	：只找说明文件manual路径下的文件
 -s	：只找Source来源文件
--u :搜寻不在上述三个项目当中的其他特殊档案
+-u : 搜寻不在上述三个项目当中的其他特殊档案
 ```
 
 
 
-`locate`
+##### `locate`
 
- locat 寻找的数据是由『已建立的数据库 /var/lib/mlocate/』 里面的数据所搜寻到 的
+在已创建的数据库 `/var/lib/mlocate/` 中查找。
+
+这数据库文件CentOS 7.x默认只更新一次。通过命令`updatedb`可手动更新，这个命令根据配置文件`/etc/updatedb.conf`的设置搜索系统里的文件名，并更新到前面的数据库文件。
+
+```shell
+# locate [-ir] keyword
+-i：忽略大小写
+-l：仅输出几行
+-r：正则
+-S：输出locate所使用的数据库文件的相关信息，包括数据库记录的文件/目录数量等
+
+[root@VM-16-12-centos ~]# locate -l 5 passwd
+/etc/passwd
+/etc/passwd-
+/etc/pam.d/passwd
+/etc/security/opasswd
+/usr/bin/gpasswd
+[root@VM-16-12-centos ~]# locate -S
+Database /var/lib/mlocate/mlocate.db:
+      21,505 directories
+      164,759 files
+      15,880,186 bytes in file names
+      4,774,040 bytes used to store database
+```
 
 #####   find
+
+```shell
+# find [PATH] [option] [action]
+```
+
+
 
 ### 6.6 权限和命令间的关系
 
@@ -833,7 +924,7 @@ which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文�
 
 ## 16 程序管理与SELinux初探
 
-#### 16.1 什么是程序（process）
+### 16.1 什么是程序（process）
 
 在 Linux中，<u>**触发任何一个事件**时，系统都会将他定义成一个程序，并且给予这个程序一个ID ，成为**PID**，同时依据这个程序的用户与相关属性关系，给予这个PID一组有效的权限设定</u>。从此以后，这个PID能够在系统上进行的动作，就与这个PID的权限有关了。
 
@@ -881,21 +972,21 @@ F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 
 🔖
 
-#### 16.2 工作管理（job control）
+### 16.2 工作管理（job control）
 
 
 
-#### 16.3 程序管理
+### 16.3 程序管理
 
 
 
 
 
-#### 16.4 特殊文件与程序
+### 16.4 特殊文件与程序
 
 
 
-#### 16.5 SELinux
+### 16.5 SELinux
 
 
 
@@ -957,19 +1048,62 @@ pstree
 
 ## 18 认识、分析登录文件
 
-登录文件可以记录系统在什么时间、哪个主机、哪个服务、出现了什么讯息等信息， 这些信息也包括用户识别数据、系统故障排除须知等信息。`/var/log/`
+登录文件可以记录系统在什么时间、哪个主机、哪个服务、出现了什么讯息等信息， 这些信息也包括用户识别数据、系统故障排除须知等信息。
 
-透过 1.察看屏幕上面的错误信息与 2.登录文件的错误信息，几乎可以解决大部分的 Linux 问题!
+### 18.1 什么事登录文件
 
-/var/log/cron
+登录文件：**记录系统在什么时候由哪个程序做了什么样的行为时，发生了何种的事件等一系列文件**。通俗的讲就是<u>何时、何地 （来源 IP）、何人 （什么服务名称）、做了什么动作</u> 。
 
-/var/log/dmesg:   记录系统在开机的时候核心硬件检测过程所产生的各项信息
+“**详细而确实的分析以及备份系统的登录文件**”是一个系统管理员应该要进行的任务之一。
 
-/var/log/messages:  	相当的重要，几乎系统发生的错误讯息 (或是重要的信息) 都会记录在这个档案中
+#### 登录文件的重要性
 
-/var/log/secure:	基本上，只要牵涉到『需要输入账号密码』的软件，那么当登入时 (不管登入正确戒错诨) 都会被记录在此档 案中。 
+- 解决系统方面的错误
+- 解决网络服务的问题
+- 过往事件记录簿
 
-`/var/log/httpd/*`, `/var/log/news/*`, `/var/log/samba/*`:
+> 通过 ①察看屏幕上面的错误信息与②登录文件的错误信息，几乎可以解决大部分的 Linux 问题！
+
+#### Linux常见的登录文件
+
+登录文件通常仅有root能够读取。`/var/log/`
+
+1. /var/log/boot.log ：开启时系统核心检测硬件的信息
+2. /var/log/cron：
+3. /var/log/dmesg:   记录系统在开机的时核心检测硬件过程所产生的各项信息
+
+4. /var/log/lastlog：记录系统上面所有的帐号最近一次登陆系统时的相关信息。`lastlog`就是读取这个文件。
+5. /var/log/maillog 或 /var/log/mail/*：记录邮件的往来信息，其实主要是记录 postfix （SMTP 协定提供者） 与 dovecot （POP3 协定提供者） 所产生的信息。
+6. **/var/log/messages**:  	相当的重要，几乎系统发生的错误信息 (或重要信息) 都会记录在这个文件中。
+7. /var/log/secure:	基本上，只要牵涉到"需要输入账号密码"的软件，那么当登入时 (不管登入正确或错误) 都会被记录在此。 
+8. /var/log/wtmp, /var/log/faillog：`last`
+9. `/var/log/httpd/*`, `/var/log/news/*`, `/var/log/samba/*`：不同的网路服务都会有自己的登录文件记录其产生的各种信息。
+
+#### 登录文件所需相关服务 （daemon） 与程序
+
+systemd-journald.service：最主要的讯息收受者，由 systemd 提供的；
+
+rsyslog.service：主要登录系统与网络等服务的讯息；
+
+logrotate：主要在进行登录文件的轮替功能。
+
+
+
+#### journalctl
+
+
+
+#### 登录文件的一般格式
+
+事件发生的日期与时间；
+
+发生此事件的主机名称；
+
+启动此事件的服务名称 （如 systemd, CROND 等） 或指令与函数名称 （如 su, login..）；
+
+该讯息的实际数据内容。
+
+
 
 
 
@@ -978,6 +1112,36 @@ CentOS 提供 syslogd 这个服务来统一管理登录档喔!
 syslogd:主要登录系统不网绚等朋务的讯息;
 klogd:主要登录核心产生的各项信息;
 logrotate:主要在迚行登录文件的轮替功能。
+
+
+
+### 18.2 rsyslog.service ：记录登录文件的服务
+
+
+
+#### rsyslog.service 的配置文件：/etc/rsyslog.conf
+
+##### 服务名称
+
+##### 信息等级
+
+##### 信息记录的文件名或设备或主机
+
+##### 服务、daemon 与函数名称
+
+
+
+#### 登录文件的安全性设置
+
+
+
+#### 登录文件服务器的设置
+
+
+
+
+
+### 18.3 登录文件的轮替（logrotate）
 
 
 
@@ -995,9 +1159,19 @@ logrotate:主要在迚行登录文件的轮替功能。
 
 
 
-#### 分析登录档
+### 18.4 systemd-journald.service 简介
 
-`logwatch`
+#### 使用 journalctl 观察登录信息
+
+
+
+#### logger 指令的应用
+
+
+
+### 18.5 分析登录档
+
+#### `logwatch`
 
 
 
