@@ -1081,6 +1081,11 @@ pstree
 
 #### 登录文件所需相关服务 （daemon） 与程序
 
+登录文件产生的两种方式：
+
+- 软件开发商自己定义
+-  🔖
+
 systemd-journald.service：最主要的讯息收受者，由 systemd 提供的；
 
 rsyslog.service：主要登录系统与网络等服务的讯息；
@@ -1209,9 +1214,11 @@ lm_sensors，是一款基于linux系统的[硬件监控](https://baike.baidu.com
 
 ## 21 软件安装：源代码与Tarball
 
-了解如何将开 放源码的程序设计、加入函数库的原理、通过编译而成为可以执行 的 binary program，最后 该可执行文件可被我们所使用的一连串过程!
+了解如何将开放源码的程序设计、加入函数库的原理、通过编译而成为可以执行的 binary program，最后该可执行文件可被我们所使用的一连串过程!
 
-#### 1、源码安装
+### 21.1 源码安装
+
+#### 什么是开放源码、编译器和可执行文件
 
 Linux系统中的真正可执行文件都是二进制文件，例如/usr/bin/passwd，/bin/touch等。shell scripts是利用shell（如bash）程序来执行的。
 
@@ -1223,27 +1230,58 @@ Linux系统中的真正可执行文件都是二进制文件，例如/usr/bin/pas
 /etc/init.d/network: Bourne-Again shell script, ASCII text executable
 ```
 
-如果二进制文件是可以执行的时候，就会显示执行文件类别 (**ELF 64-bit LSB executable**)， 同时会说明是否使用动态函数库 (shared libs)。
+如果二进制文件是可以执行的时候，就会显示执行文件类别 (**ELF 64-bit LSB executable**)， 同时会说明是否使用动态函数库 (**dynamically linked**)。
 
-一般的shell脚本，就会显示ASCII text executables。如果第一行是#!/bin/bash，还会显示Bourne-Again shell script。
+一般的shell脚本，就会显示**ASCII text executables**。如果第一行是`#! /bin/bash`，还会显示**Bourne-Again shell script**。
 
-##### make 与 configure
+#### 函数库
 
-执行 make 时，make 会在当前目录下搜寻 Makefile/makefile)这个文本文件，而 Makefile 里面则记录了原始码如何编译的详细信息! make 会自动的判别原码是否经过变动了，而自动更新执行档。
+动态与静态函数库
+
+/usr/include, /usr/lib, /usr/lib64
+
+#### make 与 configure
+
+ gcc是编译器。make是依赖于Makefile来编译多个源文件的工具，在Makefile里同样是用gcc(或者别的编译器)来编译源代码。
+
+执行 make 时，make 会在当前目录下搜寻Makefile/makefile文件，而 Makefile 里面则记录了源代码如何编译的详细信息！make 会自动的判别源码是否经过变动了，然后自动更新可执行文件。
 
 源代码安装程序的过程：
 
 1. 下载源码
-
 2. 解压缩
-
 3. 执行 ./configure   -> 生成 makefile 文件
-
 4. make    ->  对makefile 文件 操作
-
 5. make install 
 
-#### 2源码安装范例
+configure会监测运行环境：
+
+- 是否有合适的编译器
+- 是否有对应的函数库或软件
+- 操作系统是否适合本软件
+- 核心的头文件是否存在
+
+#### 什么是 Tarball 的软件
+
+Tarball文件，就是将软件的所有源代码文件先以 tar 打包，然后再以压缩技术来压缩成一个文件。
+
+Tarball文件解压后通常包括：
+
+- 源代码
+- 监测程序（configure或config）
+- 软件说明和安装说明（INSTALL或README）
+
+#### 如何安装与升级软件
+
+直接使用linux发行厂商预先编译好的程序来安装与升级，省略了监测、编译等过程。
+
+ Red Hat 系统（含 Fedora/CentOS 系列） 发展的 ==RPM== 软件管理机制与 ==yum== 线上更新模式；
+
+Debian 使用的 ==dpkg== 软件管理机制与 ==APT== 线上更新模式。
+
+### 21.2 源码安装示例
+
+##### Hello World
 
 ```shell
 # vim hello.c 
@@ -1272,7 +1310,7 @@ gcc 是编译程序，上面gcc的过程可以分两步：
 Hello World
 ```
 
-##### 子程序的编译和链接
+##### 主、副程序链接：副程序的编译
 
 ```shell
 # vim thanks.c
@@ -1300,13 +1338,15 @@ Hello World
 Thank you!
 ```
 
-由于源码文件有时有很多歌，所以无法直接编译， 这时就需要先产生目标文件，然后再以链接制作成为二进制可执行文件。
+> 为什么要制作出目标文件了吗？
 
-如果单个源码文件更新了，只需要重新生成单个目标文件，然后重新链接，可节省时间。
+1. 由于源码文件有时有很多个，所以无法直接编译， 这时就需要先产生目标文件，然后再以链接制作成为二进制可执行文件。
+
+2. 如果单个源码文件更新了，只需要重新生成单个目标文件，然后重新链接，可节省时间。
 
 
 
-##### 链接外部函数库
+#####  调用外部函数库：加入链接的函数库
 
 ```shell
 # vim sin.c
@@ -1322,42 +1362,62 @@ sin.c: In function 'main':
 sin.c:5: warning: incompatible implicit declaration of built-in function 'sin' /tmp/ccsfvijY.o: In function `main':
 sin.c:(.text+0x1b): undefined reference to `sin'
 collect2: ld returned 1 exit status
-# 注意看到上面最后一行，会有个错诨讯息，代表没有成功!
+# 注意看到上面最后一行，会有个错误信息，代表没有成功!
 
-# gcc sin.c -lm -L/lib -L/usr/lib
+
+```
+
+C语言里面的sin函数是写在 libm.so 这个数学函数库中。
+
+```bash
+# gcc sin.c -lm -L/lib -L/lib64
 # ./a.out
 1.000000
 ```
 
-C语言里面的sin函数是写在 libm.so 这个函数库中。
+`-lm`中的l表示“加入某个函数库”，m就是指libm.so函数库。`-L`表示在指定路径下搜索。
 
-l: 是“加入某个函数库”的意思
+`#include <stdio.h>`就是指`/usr/include/stdio.h`，C语言标准库文件默认就在`/usr/include`，可通过`-I`指定搜索库文件的位置。
 
-m: 是指 libm.so 函数库
+> 尖括号就表示标准库文件，就到默认的`/usr/include`下寻找，如果是双引号就是当前目录。
 
+🔖
 
-
-#### 3、用make进行宏编译
-
-
-
-#### 4、Tarball的管理
+### 21.3 用make进行宏编译
 
 
 
+### 21.4 Tarball的管理
 
 
-#### 5、函数库管理
 
 
 
-#### 6、检验软件的正确性
+#### 21.5 函数库管理
+
+
+
+#### 21.6 检验软件的正确性
 
 
 
 
 
 ## 22 软件安装：RPM、SRPM、YUM
+
+
+
+### 22.2 RPM 软件管理程序： rpm
+
+
+
+### 22.3 YUM 线上升级机制
+
+
+
+### 22.4 SRPM 的使用 ： rpmbuild
+
+
 
 
 
