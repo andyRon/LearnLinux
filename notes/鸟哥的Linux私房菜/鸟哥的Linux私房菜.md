@@ -3,7 +3,7 @@
 
 更新为第四版
 
-
+[鸟哥的首页](https://linux.vbird.org/)
 
 ### 准备
 
@@ -16,6 +16,12 @@ cat /etc/sysconfig/network-scripts/ifcfg-eth0
 ifconfig
 ip add
 ```
+
+
+
+# Linux的学习曲线和建议
+
+
 
 
 
@@ -33,11 +39,13 @@ ip add
 
 #### 一切设计的起点： CPU 的架构
 
-精简指令集（RISC）
+- 精简指令集（RISC，Reduced Instruction Set Computer）   ARM架构
 
-复杂指令集（CISC）
+- 复杂指令集（CISC，Complex Instruction Set Computer）   x86架构
 
 #### 计算单位
+
+- 容量单位
 
 > 1 Byte = 8 bits
 >
@@ -45,27 +53,133 @@ ip add
 
 ![](../../images/linux-002.jpg)
 
-网速常用的是bit为单位，Mbps（Mbits per second），常说100M网速，要除以8，大约12.5MBps
+<font color=#FF8C00>一般，文件大小使用二进制的方式，所以 1GBytes 的文件大小实际上为：1024x1024x1024Bytes 这么大！ 速度单位则常使用十进制，例如 1GHz 就是1000x1000x1000Hz 的。</font>
+
+- 速度单位
+
+CPU运算速度常用MHz、GHz等，Hz表示秒分之一。
+
+网速常用的是bit为单位，Mbps（Mbits per second），常说100M网速，要除以8，大约12.5MBps。
 
 ### 0.2 个人电脑架构与相关设备元件
 
 #### CPU
 
-#### 内存
+##### CPU的工作频率：外频与倍频
+
+外频：CPU与外部元件进行数据传输时的速度；
+
+倍频：CPU内部用来加速工作性能的一个倍数。
+
+**CPU的工作频率（内频） = 外频 * 倍频**
+
+> 例如 Intel Core 2 E8400 的内频为 3.0GHz，而外频是333MHz，因此倍频就是9倍啰！（3.0G=333Mx9, 其中1G=1000M）
+
+“超频”： 将CPU的倍频或者是外频通过主板的设置功能更改成较高频率的一种方式。（但一般倍频出厂时被锁定无法修改）
+
+##### 32位与64位的CPU与总线“宽度”
+
+
+
+##### CPU等级
+
+2023年桌面端CPU综合性能天梯图：
+
+![2023年桌面端CPU综合性能天梯图](https://pic4.zhimg.com/v2-a8df62d3250791690bef6e3830d61fab_r.jpg)
+
+##### 超线程 （Hyper-Threading, HT）
+
+
+
+#### 内存（main memory）
+
+不论是软件程序还是数据，都必须要读入内存后CPU才能利用。
+
+动态随机存取内存（Dynamic Random Access Memory, DRAM）
+
+静态随机存取内存（Static Random Access Memory, SRAM）
+
+BIOS（Basic Input Output System）是一套程序，这套程序是写死到主板上面的一个内存芯片中， 这个内存芯片在没有通电时也能够将数据记录下来，那就是**只读存储器（Read Only Memory, ROM）**。
+
+
 
 #### 显卡
 
-显卡又称为VGA（Video Graphics Array），影响图像的分辨率与色彩深度。显存
+显卡又称为VGA（Video Graphics Array）。
+
+一般对于图形影像的显示重点在于**分辨率与色彩深度**，因为每个图像显示的颜色会占用掉内存， 因此显卡上面会有一个内存的容量（<font color=#FF8C00>**显存**</font>）。也就是说显存会影响图像的分辨率与色彩深度。
+
+由于3D游戏和动画的流行，除了显存，显卡的“运算能力”也越来越重要。**图形处理器（graphics processing unit，GPU）**。
+
+
 
 #### 硬盘与存储设备
 
-传输接口： SATA、SAS、 IDE 与 SCSI ，了 USB, eSATA 等等
+##### 硬盘的物理组成
+
+![](images/image-20230131220415352.png)
+
+磁头（head）
+
+##### 盘片上的数据
+
+![](images/image-20230131220508790.png)
+
+扇区 （sector）
+
+磁道（track）
+
+柱面 （cylinder）：所有盘片上面的同一个磁道
+
+
+
+##### 磁盘与主板<font color=#FF8C00>传输接口</font>
+
+传输接口： SATA、SAS、 IDE 与 SCSI ，其它USB, eSATA 等等。
+
+主要：SATA, USB 与 SAS。
+
+##### 固态硬盘 （Solid State Disk, SSD）
+
+
 
 #### 扩展卡与接口
 
+PCI (peripheral component interconnect)
+
+**PCIe**（PCI-Express）速度快，主流。
+
+一般主板大多还是会保留一两个 PCI 插槽，其他的则是以 PCIe 来设计。
+
+
+
 #### 主板
 
+##### 发挥扩展卡性能须考虑的插槽位置
+
+
+
+##### 设备I/O位址与IRQ中断信道
+
+
+
+##### CMOS与BIOS
+
+CMOS主要的功能为记录主板上面的重要参数， 包括系统时间、CPU电压与频率、各项设备的I/O位址与IRQ等，由于这些数据的记录要花费电力，因此主板上面才有电池。 BIOS为写入到主板上某一块 flash 或 EEPROM 的程序，他可以在开机的时候执行，以载入CMOS当中的参数， 并尝试调用储存设备中的开机程序，进一步进入操作系统当中。
+
+BIOS程序也可以修改CMOS中的数据， 每种主板调用BIOS设置程序的按键都不同，一般台式机常见的是使用[del]按键进入BIOS设置画面。
+
+
+
+##### 连接周边设备的接口
+
+![](images/image-20230131224312911.png)
+
+
+
 #### 电源供应器
+
+
 
 ### 0.3 数据表示方式
 
@@ -75,13 +189,27 @@ ip add
 
 #### 操作系统
 
-操作系统核心的功能：
+##### 操作系统核心（Kernel）
+
+
+
+##### 系统调用（System Call）
+
+
+
+##### 操作系统核心的功能：
 
 - 系统调用接口（System call interface）
 - 程序管理（Process control）  cpu有效分配，cpu排程机制
 - 内存管理（Memory management）
 - 文件系统管理（Filesystem management）
 - 设备的驱动（Device drivers）   可加载模块
+
+
+
+##### 操作系统与驱动程序
+
+
 
 #### 应用程序
 
