@@ -221,7 +221,13 @@ BIOS程序也可以修改CMOS中的数据， 每种主板调用BIOS设置程序�
 
 
 
-## 1 Linux是什么/如何学习
+## 1 Linux是什么与如何学习
+
+### 1.1 Linux是什么
+
+
+
+####  Linux之前，Unix的历史
 
 GNU 是 GNU is Not Unix 
 
@@ -229,29 +235,180 @@ GNU C Compiler(gcc)
 
 自由软件基金会(FSF, Free Software Foundation)
 
-GNU的通用公共许可证(General Public License, GPL) --- copyleft(相对于专利软件的copyright！)
+GNU的**通用公共许可证**(General Public License, GPL) ， copyleft(相对于专利软件的copyright！)
 
-POSIX是可携式操作系统接口(Portable Operating System Interface)，重点在规范核心与应用程序之间的接口。
+GNU所开发的几个重要软件，如：
 
-Linux distributions：两大主流 1）使用RPM （Red Hat，Fedora，SuSE），2）使用dpkg(Debian,Ubuntu等)
+```
+Emacs
+GNU C （GCC）
+GNU C Library （glibc）
+Bash shell
+```
+
+
+
+#### 关于GNU计划、自由软件与开放源代码
+
+##### 自由软件的活动
+
+
+
+##### 自由软件的版权GNU GPL：
+
+
+
+##### 自由（Free）的真谛：
+
+使用者可以自由的执行、复制、再发行、学习、修改与强化自由软件。
+
+一个软件挂上了GPL版权宣告之后，他自然就成了自由软件！这个软件就具有下面的特色：
+
+```
+取得软件与源代码：你可以根据自己的需求来执行这个自由软件；
+
+复制：你可以自由的复制该软件；
+
+修改：你可以将取得的源代码进行程序修改工作，使之适合你的工作；
+
+再发行：你可以将你修改过的程序，再度的自由发行，而不会与原先的撰写者冲突；
+
+回馈：你应该将你修改过的程序码回馈于社群！
+```
+
+但请特别留意，你所修改的任何一个自由软件都不应该也不能这样：
+
+```
+修改授权：你不能将一个GPL授权的自由软件，在你修改后而将他取消GPL授权～
+
+单纯贩卖：你不能单纯的贩卖自由软件。
+```
+
+
+
+##### 自由软件与商业行为：
+
+Linux开发商大多都是贩售“售后服务！”
+
+
+
+##### 开放源代码：
+
+自由软件（free software）
+
+常见的开放源代码授权有哪些呢？
+
+Apache License 2.0
+
+BSD 3-Clause "New" or "Revised" license
+
+BSD 2-Clause "Simplified" or "FreeBSD" license
+
+GNU General Public License （GPL）
+
+GNU Library or "Lesser" General Public License （LGPL）
+
+MIT license
+
+Mozilla Public License 2.0
+
+Common Development and Distribution License
+
+##### 专属软件/专利软件 （close source）
+
+相对于Open Source的软件会释出源代码，Close source的程序则仅推出可执行的二进制程序（binary program）而已。
+
+优点是有专人维护，你不需要去更动他；缺点则是灵活度大打折扣，使用者无法变更该程序成为自己想要的样式！
+
+
+
+### 1.2 Torvalds的Linux发展
+
+#### 与Minix之间
+
+
+
+#### 对386硬件的多任务测试
+
+
+
+#### 初次释出Linux 0.02
+
+**POSIX**是可携式操作系统接口(Portable Operating System Interface)，重点在规范核心与应用程序之间的接口。
+
+
+
+#### Linux 的发展：虚拟团队的产生
+
+
+
+#### Linux的核心版本
+
+Linux的核心版本编号类似：
+
+![](images/image-20230201160411043.png)
+
+#### Linux distributions
+
+各大Linux Distributions的主要异同：支持标准！
+
+为了让所有的Linux distributions开发不致于差异太大，且让这些开发商在开发的时候有所依据，还有[Linux Standard Base （LSB）]( http://www.linuxbase.org/)等标准来规范开发者，以及目录架构的[File system Hierarchy Standard （FHS）](https://www.pathname.com/fhs/)标准规范！
+
+
+
+Linux distributions可以以软件安装方式分为两大主流 ：
+
+1. 使用RPM （Red Hat，Fedora，SuSE）
+2. 使用dpkg(Debian,Ubuntu等)
+
+
+
+### 1.3 Linux当前用在哪里
+
+#### 企业
+
+1. 网络服务器
+2. 关键任务的应用（金融数据库、大型企业网管环境）
+3. 学术机构的高性能运算任务
+
+#### 个人
+
+1. 桌面电脑
+
+2. 手持系统（PDA、手机）
+
+3. 嵌入式系统。
+
+   家电产品、数码相机、路由器、防火墙、IP分享器、交换器、机器人控制芯片等
+
+#### 云端运用
+
+1. 云程序
+2. 端设备
+
+
+
+### 1.4 Linux 该如何学习
+
+[TLDP](http://www.tldp.org/)（The Linux Documentation Project）
+
+
+
+
 
 linux上的图形界面： KDE ， GNOME
 
 **平行运算**是将原本的工作分成多样，然后交给多部主机去运算，最终再将结果收集起来。
 
-*要让linux解决问题*
+要让linux解决问题
 
 Linux最强的地方在于**网络**，而Windows是赢在用户接口较为亲善。
 
-*作为一个使用者，人要迁就机器；做为一个开发者，要机器迁就人。*
+> 作为一个使用者，人要迁就机器；做为一个开发者，要机器迁就人。
 
 **TLDP**是 The Linux Documentation Project 。
 
 异步的磁盘/内存数据传输模式。
-
-
-
-
 
 `/usr/share/doc/`   Linux自己的文档存储位置
 
@@ -276,7 +433,13 @@ Linux最强的地方在于**网络**，而Windows是赢在用户接口较为亲�
 
 
 
-### 2.2 磁盘分区
+### 2.2 磁盘分区🔖
+
+#### 磁盘连接的方式与设备文件名的关系
+
+
+
+#### MSDOS（MBR） 与 GPT 磁盘分区表（partition table）
 
 ##### 磁盘的组成
 
@@ -290,6 +453,10 @@ Linux最强的地方在于**网络**，而Windows是赢在用户接口较为亲�
     *   最多纪录四条分割信息（开始和结束的磁柱号码，主和延伸分割槽；其中延伸最多一个，可以进行逻辑分割）
     *   分隔槽最小单位是cylinder
     *   延伸分割槽使用额外的扇区来纪录分割信息（在延伸分隔槽中）
+
+##### MSDOS （MBR） 分区表格式与限制
+
+
 
 ##### 开机流程与MBR 
 
@@ -319,21 +486,68 @@ SAMBA （与windows文件共享） /home
 
 
 
-## 3 安装CentOS7.x
+#### Linux安装模式下，磁盘分区的选择（极重要）
+
+##### 目录树结构 （directory tree）
+
+
+
+##### 文件系统与目录树的关系（挂载）
+
+<font color=#FF8C00>“挂载”</font>就是利用一个目录当成进入点，将磁盘分区的数据放置在该目录下； 也就是说，进入该目录就可以读取该分区。
+
+由于整个Linux系统最重要的是根目录，因此根目录一定需要挂载到某个分区的。 至于其他的目录则可依使用者自己的需求来给予挂载到不同的分区。
+
+![](images/image-20230201184300558.png)
+
+### 2.3 安装Linux前的规划
+
+
+
+## 3 安装CentOS7.x🔖
 
 
 
 ## 4 首次登录与man page
 
-#### 基础
+### 4.1 首次登陆系统
+
+
+
+### 4.2 文字模式下命令的下达
+
+#### 开始下达的命令
+
+格式一般是：
+
+![](images/image-20230201190656509.png)
+
+第一个被输入的数据绝对是指令或者是可执行的文件。
+
+##### 语系的支持
+
+
+
+ ![](images/image-20230201191124976.png)
+
+#### 基础命令
+
+`locale`
 
 `date` 
 
 `cal`
 
-`startx`
-
 `bc`
+
+在命令行下达命令后，会有两种情况：
+
+- 一种是该指令会直接显示结果然后回到命令提示字符等待下一个指令的输入；
+- 一种是进入到该指令的环境，直到结束该指令才回到命令提示字符的环境。（需要结束命令，如bc的就是quit）
+
+#### 重要的几个热键
+
+[Tab]
 
 ctrl-c 中断目前程序 
 
@@ -341,7 +555,130 @@ ctrl-z 把程序掉到背景中
 
 ctrl-d 键盘输入结束 (End Of File, EOF 或 End Of Input) 类似于 exit
 
+[shift]+{[PageUP]|[Page Down]}    翻页
+
+
+
+#### 错误信息的查看
+
+```shell
+DATE: command not found
+```
+
+两个原因：
+
+1. 没安装
+2. 命令所在目录不在命令搜寻路径中（PATH）
+
+
+
+### 4.3 Linux系统的线上求助man page与info page
+
+#### 命令的--help 求助说明
+
+```shell
+[dmtsai@study ~]# date --help
+Usage: date [OPTION]... [+FORMAT]                           # 这里有基本语法
+  or:  date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]  # 这是设置时间的语法
+Display the current time in the given FORMAT, or set the system date.
+# 下面是主要的选项说明
+Mandatory arguments to long options are mandatory for short options too.
+  -d, --date=STRING         display time described by STRING, not 'now'
+  -f, --file=DATEFILE       like --date once for each line of DATEFILE
+....（中间省略）....
+  -u, --utc, --universal    print or set Coordinated Universal Time （UTC）
+      --help     显示此求助说明并离开
+      --version  显示版本信息并离开
+# 下面则是重要的格式 （FORMAT） 的主要项目
+FORMAT controls the output.  Interpreted sequences are:
+
+  %%   a literal %
+  %a   locale's abbreviated weekday name （e.g., Sun）
+  %A   locale's full weekday name （e.g., Sunday）
+....（中间省略）....
+# 下面是几个重要的范例 （Example）
+Examples:
+Convert seconds since the epoch （1970-01-01 UTC） to a date
+  $ date --date='@2147483647'
+....（下面省略）....
+```
+
+
+
 #### man page
+
+```shell
+[dmtsai@study ~]$ man date
+DATE（1）                          User Commands                         DATE（1）
+# 请注意上面这个括号内的数字
+NAME  <==这个指令的完整全名，如下所示为date且说明简单用途为设置与显示日期/时间
+       date - print or set the system date and time
+
+SYNOPSIS  <==这个指令的基本语法如下所示
+       date [OPTION]... [+FORMAT]                            <==第一种单纯显示的用法
+       date [-u|--utc|--universal] [MMDDhhmm[[CC]YY][.ss]]   <==这种可以设置系统时间的用法
+
+DESCRIPTION  <==详细说明刚刚语法谈到的选项与参数的用法
+       Display the current time in the given FORMAT, or set the system date.
+
+       Mandatory arguments to long options are mandatory for short options too.
+
+       -d, --date=STRING  <==左边-d为短选项名称，右边--date为完整选项名称
+              display time described by STRING, not 'now'
+
+       -f, --file=DATEFILE
+              like --date once for each line of DATEFILE
+
+       -I[TIMESPEC], --iso-8601[=TIMESPEC]
+              output  date/time  in  ISO  8601  format.   TIMESPEC='date' for date only （the
+              default）, 'hours', 'minutes', 'seconds', or 'ns' for  date  and  time  to  the
+              indicated precision.
+....（中间省略）....
+       # 找到了！下面就是格式化输出的详细数据！
+       FORMAT controls the output.  Interpreted sequences are:
+
+       %%     a literal %
+
+       %a     locale's abbreviated weekday name （e.g., Sun）
+
+       %A     locale's full weekday name （e.g., Sunday）
+....（中间省略）....
+ENVIRONMENT  <==与这个指令相关的环境参数有如下的说明
+       TZ     Specifies the timezone, unless overridden by command line parameters.  
+              If neither is specified, the setting from /etc/localtime is used.
+
+EXAMPLES     <==一堆可用的范本
+       Convert seconds since the epoch （1970-01-01 UTC） to a date
+
+              $ date --date='@2147483647'
+....（中间省略）....
+
+DATE STRING  <==上面曾提到的 --date 的格式说明！
+       The --date=STRING is a mostly free format human readable date string such as "Sun, 29
+       Feb 2004 16:21:42 -0800" or "2004-02-29 16:21:42" or even "next  Thursday".   A  date
+       string  may  contain  items  indicating calendar date, time of day, time zone, day of
+
+AUTHOR  <==这个指令的作者啦！
+       Written by David MacKenzie.
+
+COPYRIGHT  <==受到著作权法的保护！用的就是 GPL 了！
+       Copyright © 2013 Free Software Foundation, Inc.  License GPLv3+: GNU GPL version 3 or
+       later <http://gnu.org/licenses/gpl.html>.
+       This  is free software: you are free to change and redistribute it.  There is NO WAR‐
+       RANTY, to the extent permitted by law.
+
+SEE ALSO  <==这个重要，你还可以从哪里查到与date相关的说明文档之意
+       The full documentation for date is maintained as a Texinfo manual.  If the  info  and
+       date programs are properly installed at your site, the command
+
+              info coreutils 'date invocation'
+
+       should give you access to the complete manual.
+
+GNU coreutils 8.22                        June 2014                                  DATE（1）
+```
+
+
 
 man page 中第一行代号的意义（`man 7 man` 查看）：
 
@@ -357,9 +694,13 @@ man page中每个部分的含义：
 
  `man -k`(比-f更全,相关的) 类似于 `apropos` 
 
+
+
 #### info page
 
 类似man page，不过info page将文件数据拆成一个一个的段落。
+
+
 
 #### 其它有用的文件
 
@@ -375,11 +716,15 @@ MANPATH /usr/X11R6/man
 `/usr/share/doc/` 下有很多重要的文档 `/usr/share/doc/centos-release-notes-5.5/`  
 `/usr/share/doc/bash-3.2/`
 
-#### 文本编辑器
+
+
+### 4.4 文本编辑器
 
 `nano` 
 
-#### 正确关机方法
+
+
+### 4.5 正确关机方法
 
 正常关机关注点：
 
@@ -413,6 +758,22 @@ MANPATH /usr/X11R6/man
 
 
 `reboot`,`halt`,`poweroff`   重新启动、关闭
+
+
+
+systemctl 关机
+
+```shell
+[root@study ~]# systemctl [指令]
+指令项目包括如下：
+halt       进入系统停止的模式，屏幕可能会保留一些讯息，这与你的电源管理模式有关
+poweroff   进入系统关机模式，直接关机没有提供电力喔！
+reboot     直接重新开机
+suspend    进入休眠模式
+
+[root@study ~]# systemctl reboot    # 系统重新开机
+[root@study ~]# systemctl poweroff  # 系统关机
+```
 
 
 
@@ -478,9 +839,7 @@ testgroup群组的[r-x]表示同组其它如test2可以进入本目录，但不�
 
 
 
-
-
-#### 改变文件属性与权限
+#### 如何改变文件属性与权限
 
 ##### chgrp ：改变文件所属群组
 
@@ -516,9 +875,15 @@ chmod u=rwx,go=rx .bashrc
 
 a表示所有身份
 
+
+
 #### 目录与文件的权限意义
 
+- 权限对文件的重要性
+
 文件的rwx， 主要针对**文件的内容**而言的。
+
+- 权限对目录的重要性
 
 目录的r表示可以查询该目录下的文件名数据，即可以用`ls` 查看目录的内容；
 
@@ -606,7 +971,9 @@ last /var/log/wtmp btmp
 
 ##### Linux文件扩展名
 
-linux文件名只是为了让用户了解文件的用途。
+linux文件是没有所谓的“扩展名”，文件名只是为了让用户了解文件的用途。
+
+
 
 ##### Linux文件名长度限制
 
@@ -615,6 +982,8 @@ linux文件名只是为了让用户了解文件的用途。
 4096
 
 ##### Linux文件名命名限制
+
+最好可以避免一些特殊字符
 
 
 
@@ -636,6 +1005,8 @@ FHS仅定义的三个目录：
 - **/** ( 根目录):与开机系统有关;
 -  **/usr** (unix software resource):与软件安装/执行有关;
 -  **/var** (variable):与系统运作过程有关。
+
+
 
 ##### 根目录的意义和内容
 
@@ -671,8 +1042,6 @@ FHS标准外需要了解的一些目录：
 
 依据 FHS 的基本定义，/usr 里面放置的数据属于可分享的与不可变动的(shareable, static)， 如果你知 道如何透过网络进行分割槽的挂载(例如在服务器篇会谈到的 **NFS服务器**)，那么/usr 确实可以分享给局 域网络内的其他主机来使用喔!
 
-
-
 ![](../../images/linux-010.jpg)
 
 ![image-20200204212734454](../../images/linux-011.jpg)
@@ -703,25 +1072,35 @@ FHS标准外需要了解的一些目录：
 
 ### 6.1 目录与路径
 
-`$PATH`
+#### 目录的相关操作
 
 `cd`  `pwd`  `mkdir`  `rmdir`
 
+#### 关于可执行文件路径的变量： $PATH
 
-
-
+`$PATH`
 
 
 
 ### 6.2 文件与目录管理
 
+#### 文件与目录的检视
+
 `ls`
+
+#### 复制、删除与移动
 
 `cp`   `rm`   `mv`
 
+#### 取得路径的文件名称与目录名称
 
+`basename`
+
+`dirname`
 
 ### 6.3 文件内容查阅
+
+#### 直接检视文件内容
 
 `cat ` 
 
@@ -729,21 +1108,62 @@ FHS标准外需要了解的一些目录：
 
  `nl`
 
+#### 可翻页检视
+
 `more` 
 
  `less`
+
+#### 数据截取
 
 `head` 
 
  `tail`
 
+#### 非文本文件
+
 `od`
+
+```shell
+[root@study ~]# od [-t TYPE] 文件
+选项或参数：
+-t  ：后面可以接各种“类型 （TYPE）”的输出，例如：
+      a       ：利用默认的字符来输出；
+      c       ：使用 ASCII 字符来输出
+      d[size] ：利用十进制（decimal）来输出数据，每个整数占用 size Bytes ；
+      f[size] ：利用浮点数值（floating）来输出数据，每个数占用 size Bytes ；
+      o[size] ：利用八进位（octal）来输出数据，每个整数占用 size Bytes ；
+      x[size] ：利用十六进制（hexadecimal）来输出数据，每个整数占用 size Bytes ；
+
+范例一：请将/usr/bin/passwd的内容使用ASCII方式来展现！
+[root@study ~]# od -t c /usr/bin/passwd
+0000000 177   E   L   F 002 001 001  \0  \0  \0  \0  \0  \0  \0  \0  \0
+0000020 003  \0   >  \0 001  \0  \0  \0 364   3  \0  \0  \0  \0  \0  \0
+0000040   @  \0  \0  \0  \0  \0  \0  \0   x   e  \0  \0  \0  \0  \0  \0
+0000060  \0  \0  \0  \0   @  \0   8  \0  \t  \0   @  \0 035  \0 034  \0
+0000100 006  \0  \0  \0 005  \0  \0  \0   @  \0  \0  \0  \0  \0  \0  \0
+.....（后面省略）....
+# 最左边第一栏是以 8 进位来表示Bytes数。以上面范例来说，第二栏0000020代表开头是
+# 第 16 个 byes （2x8） 的内容之意。
+
+范例二：请将/etc/issue这个文件的内容以8进位列出储存值与ASCII的对照表
+[root@study ~]# od -t oCc /etc/issue
+0000000 134 123 012 113 145 162 156 145 154 040 134 162 040 157 156 040
+          \   S  \n   K   e   r   n   e   l       \   r       o   n
+0000020 141 156 040 134 155 012 012
+          a   n       \   m  \n  \n
+0000027
+# 如上所示，可以发现每个字符可以对应到的数值为何！要注意的是，该数值是 8 进位喔！
+# 例如 S 对应的记录数值为 123 ，转成十进制：1x8^2+2x8+3=83。
+```
+
+#### 修改文件时间或创建新文件
 
 `touch`
 
 ### 6.4 文件和目录的默认权限、隐藏权限
 
-##### `umask`  文件预设权限
+#### `umask`  文件预设权限
 
 ```shell
 [root@www ~]# umask
@@ -752,7 +1172,7 @@ FHS标准外需要了解的一些目录：
 u=rwx,g=rx,o=rx
 ```
 
-##### 文件隐藏属性
+#### 文件隐藏属性
 
 `chattr`    配置文件案隐藏属性
 
@@ -785,7 +1205,7 @@ rm: cannot remove `attrtest': Operation not permitted <==操作不许可 # 看�
 
 
 
-##### 文件的特殊权限： SUID，SGID，SBIT
+#### 文件的特殊权限： SUID，SGID，SBIT
 
 ```shell
 [root@www ~]# ls -ld /tmp ; ls -l /usr/bin/passwd 
@@ -795,13 +1215,13 @@ drwxrwxrwt 7 root root 4096 Sep 27 18:23 /tmp
 
 
 
-##### 观察文件类型：`file` 
+#### 观察文件类型：`file` 
 
 
 
 ### 6.5 命令和文件的搜索
 
-#### 命令的搜寻
+#### 命令的搜索
 
 `which` / `type`
 
@@ -816,7 +1236,7 @@ history is a shell builtin
 
 which 是根据用户所设定的 PATH 变量内的目录去搜寻可执行文件的！history是内置的命令。
 
-#### 文件的搜索
+#### 文件文件名的搜索
 
 ##### `whereis`  
 
@@ -860,7 +1280,7 @@ Database /var/lib/mlocate/mlocate.db:
       4,774,040 bytes used to store database
 ```
 
-#####   find
+#####   `find`
 
 ```shell
 # find [PATH] [option] [action]
