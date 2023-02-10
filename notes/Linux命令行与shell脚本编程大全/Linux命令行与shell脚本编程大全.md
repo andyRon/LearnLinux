@@ -1,7 +1,9 @@
 
 
-《Linux命令行与shell脚本编程大全-第3版》
+《Linux命令行与shell脚本编程大全》
 ---------
+
+第3版（pdf）和第4版（微信读书）
 
 https://www.wiley.com/go/linuxcommandline
 
@@ -1093,11 +1095,55 @@ PMS的数据库记录：
 
 #### 9.3 基于Red Hat系统
 
-`yum`
+`yum`：用于Red Hat、CentOS和Fedora。
 
-`urpm`
+`zypper`：用于openSUSE。
 
-`zypper`
+`dnf`：yum的升级版。
+
+##### 列出已安装的软件包
+
+```shell
+dnf list installed
+```
+
+查看软件包的详细描述：
+
+```shell
+dnf list xterm
+```
+
+查看某个软件包是否已经安装：
+
+```shell
+dnf list installed xterm
+```
+
+查看某个文件时有那个软件包安装的：
+
+```shell
+dnf provides file_name
+```
+
+```shell
+$ dnf provides /usr/bin/gzip
+Last metadata expiration check: 0:12:06 ago on Sat 16 May 2020 12:10:24 PM EDT.
+gzip-1.10-1.fc31.x86_64 : The GNU data compression program
+Repo        : @System
+Matched from:
+Filename    : /usr/bin/gzip
+
+gzip-1.10-1.fc31.x86_64 : The GNU data compression program
+Repo        : fedora
+Matched from:
+Filename    : /usr/bin/gzip
+
+$
+```
+
+dnf分别检查了两个仓库：本地系统和默认的fedora仓库。
+
+
 
 #### 9.4 从源码安装
 
@@ -2537,8 +2583,6 @@ sed和gawk工具极大简化了shell脚本需要进行的数据处理任务。
 
 #### 19.1 文本处理
 
-
-
 ##### sed编辑器
 
 sed（stream editor，**<font color=#FF8C00>流编辑器</font>**），和普通的交互式文本编辑器（如vim）恰好相反。
@@ -2552,11 +2596,24 @@ sed编辑器会执行下列操作：
 3. 按照命令修改流中的数据。
 4. 将新的数据输出到STDOUT。
 
-由于命令是按顺序逐行给出，sed编辑器只需要对数据流进行一遍处理就可以完成编辑操作。
+由于命令是按顺序逐行给出，sed编辑器只需要对数据流进行==处理一遍（one pass through）==就可以完成编辑操作。
 
+sed命令的格式：
 
+```shell
+sed options script file
+```
+
+*options*参数可用选项：
+
+- `-e commands` 在处理输入时，加入额外的sed命令
+
+- `-f file` 在处理输入时，将file中指定的命令添加到已有的命令中
+- `-n` 不产生命令输出，使用p（print）命令完成输出
 
 ###### 1.在命令行定义编辑器命令
+
+在默认情况下，sed编辑器会将指定的命令应用于==STDIN==输入流中。因此，可以直接将数据通过管道传入sed编辑器进行处理。
 
 ```shell
 $ echo "This is a test" | sed "s/test/big test"
@@ -2583,7 +2640,7 @@ The quick brown fox jumps over the lazy cat.
 The quick brown fox jumps over the lazy cat.
 ```
 
-`sed`不会修改文本文件的数据。
+`sed`不会修改文本文件的数据，只是将修改后的数据发送到==STDOUT==。
 
 ###### 2.使用多个编辑器命令
 
@@ -2597,13 +2654,15 @@ The quick green fox jumps over the lazy cat.
 
 分号隔开，命令末尾和分好之间不能有空格（有的版本是可以有）。
 
+> 分隔可用`/`，也可以用`|`。
+
 也可以换行输入，只要首尾有单引号就可以：
 
 ```shell
 $ sed -e '
-quote> s|brow|green|
-quote> s|fox|elephant|
-quote> s|dog|cat|' data1.txt
+> s|brow|green|
+> s|fox|elephant|
+> s|dog|cat|' data1.txt
 The quick greenn elephant jumps over the lazy cat.
 The quick greenn elephant jumps over the lazy cat.
 The quick greenn elephant jumps over the lazy cat.
@@ -2626,15 +2685,132 @@ The quick greenn elephant jumps over the lazy cat.
 
 > 为了区分sed编辑器脚本文件与bash shell脚本文件搞混，用`.sed`。
 
-##### gawk程序
+##### gawk编辑器
 
-gawk比sed编辑器跟进一步，提高一个类编程环境来修改和重新组织文件中的数据。
+gawk比sed编辑器跟进一步，提供一个更贴近编程的环境，修改和重新组织文件中的数据。
 
 gawk程序是Unix中原始awk程序的GNU版本。
 
+gawk提供一种编程语言，而不仅仅是编辑器命令，它可以实现：
+
+- 定义变量来保存数据。
+
+- 使用算术和字符串运算符来处理数据。
+
+- 使用结构化编程概念（比如if-then语句和循环）为数据处理添加处理逻辑。
+
+- 提取文件中的数据将其重新排列组合，最后生成格式化报告。
+
+  多用于从大文本文件中提取数据并将其格式化成可读性报告。最完美的应用案例是==格式化日志文件==。
+
+###### 1.gawk命令格式
+
+```shell
+gawk options program file
+```
+
+gawk的可用选项：
+
+- `-F fs`：指定行中划分数据字段的字段分隔符（field separator）
+- `-f file`：从指定文件中读取gawk脚本代码
+- `-v var=value`：定义gawk脚本中的变量及其默认值
+- `-L [keyword]`：指定gawk的兼容模式或警告级别
+
+###### 2.从命令行读取gawk脚本
+
+和sed编辑器一样，gawk会对数据流中的每一行文本都执行脚本。
+
+###### 3.使用数据字段变量
+
+gawk会自动为文本文件中每一行的各个数据元素分配一个变量。默认：
+
+- `$0`代表整个文本行。
+- `$1`代表文本行中的第一个数据字段。
+- `$2`代表文本行中的第二个数据字段。
+- `$n`代表文本行中的第n个数据字段。
+
+```shell
+$ cat data2.txt
+One line of test text.
+Two lines of test text.
+Three lines of test text.
+$
+$ gawk '{print $1}' data2.txt
+One
+Two
+Three
+$
+```
+
+gawk会用预先定义好的==字段分隔符==（默认是空白字符）划分出各个数据字段。
+
+通过`-F`选项指定字段分隔符：
+
+```shell
+$ gawk -F : '{print $1}' /etc/passwd
+root
+daemon
+bin
+[...]
+christine
+sshd
+$
+```
+
+###### 4.在脚本中使用多条命令
+
+多条命令使用分号分开即可：
+
+```shell
+$ echo 'My name is Rich' | gawk '{$4="Andy"; print $0}'
+My name is Andy
+```
 
 
-### 20 正则表达式
+
+```shell
+$ gawk '{$4="Andy"; print $0}'
+My name is Rich
+My name is Andy
+```
+
+当运行这个脚本的时候，它会等着读取来自STDIN的文本。
+
+###### 5.从文件中读取脚本
+
+```shell
+$ cat script2.gawk
+{ print $1 "'s home directory is " $6 }
+$
+$ gawk -F: -f script2.gawk /etc/passwd
+root's home directory is /root
+daemon's home directory is /usr/sbin
+bin's home directory is /bin
+[...]
+christine's home directory is /home/christine
+sshd's home directory is /run/sshd
+$
+```
+
+也可以写成：
+
+```shell
+$ cat script3.gawk
+{
+text = "'s home directory is "
+print $1 text $6
+}
+```
+
+> 注意，在gawk脚本中，引用变量值时无须像shell脚本那样使用美元符号。
+
+
+
+
+
+
+
+### 20 正则表达式  
 
 在shell脚本中成功运用sed编辑器和gawk程序的关键在于熟练使用正则表达式。
 
