@@ -7,20 +7,25 @@
 
 https://www.wiley.com/go/linuxcommandline
 
-## 一、Linux命令行
+# 一、Linux命令行
 
-### 1 初识Linux shell
-Linux的组成：**Linux内核**、**GNU工具**、**图形化桌面环境**、**应用软件**。
+## 1 初识Linux shell
+
+### 1.1 Linux初探
+
+Linux系统有四个部分组成：**Linux内核**、**GNU工具**、**图形化桌面环境**、**应用软件**。
 
 ![](../../images/linux-022.jpg)
 
 #### Linux内核
 
-内核的四种功能：**系统内存管理**、**软件程序管理**、**硬件设备管理**、**文件系统管理**。
+内核控制着计算机系统的所有硬件和软件，==在必要时分配硬件，并根据需要执行软件==。
+
+内核的主要四种功能：**系统内存管理**、**软件程序管理**、**硬件设备管理**、**文件系统管理**。
 
 ##### 1 系统内存管理
 
-内核不仅管理物理内存，还可以创建和管理虚拟内存。
+内核不仅管理==物理内存==，还可以创建和管理==虚拟内存==。
 
 **交换空间**（Swap space）在物理内存（RAM）被充满时被使用。如果系统需要更多的内存资源，而物理内存已经充满，内存中不活跃的页就会被移到交换空间去。
 
@@ -35,18 +40,50 @@ Linux的组成：**Linux内核**、**GNU工具**、**图形化桌面环境**、*
 
 ##### 2 软件程序管理
 
+Linux操作系统称==运行中的程序==为==进程==。
+
 内核创建了第一个进程（称为**<font color=#FF8C00>init进程</font>**）来启动系统上所有其他进程。当内核启动时，它会将init进程加载到虚拟内存中。内核在启动任何其他进程时，都会在虚拟内存中给新进程分配一块专有区域来存储该进程用到的数据和代码。
-一些Linux发行版使用一个表（`/etc/inittab`）来管理在系统开机时要自动启动的进程。
-另外一些发行版（比如Ubuntu ）则采用`/etc/init.d`目录，将开机时启动或停止某个应用的脚本放在这个目录下。这些脚本通过`/etc/rcX.d`目录下的入口（entry）启动，这里的X代表运行级（runlevel）。
+
+Linux中，有多种init进程实现，主流有两种：
+
+- **SysVinit**：Linux最初使用的，基于Unix System V初始化方法。
+
+​	`/etc/inittab`文件定义了系统的默认运行级。特定运行级下启动的进程是在`/etc/rc.d`目录下的各个子目录中定义的。可以使用`runlevel`命令随时查看当前运行级。
+
+```shell
+$ runlevel
+N 5
+$
+```
+
+![](images/image-20230219225623317.png)
+
+- **systemd**：systemd初始化方法诞生于2010年，现在是最流行的初始化和进程管理系统。
+
+systemd初始化方法得以流行起来的原因在于==能够根据不同的事件启动进程==：
+
+> 系统启动时
+>
+> 连接到特定的硬件设备时
+>
+> 服务启动时
+>
+> 建立好网络连接时
+>
+> 计时器到期时
+
+
+
+🔖[systemd介绍](systemd.md)
 
 ##### 3 硬件设备管理
 
-任何Linux系统需要与之通信的设备，都需要在内核代码中加入其**驱动程序代码**。驱动程序代码相当于应用程序和硬件设备的中间人，允许内核与设备之间交换数据。
+任何Linux系统需要与之通信的设备，都需要在内核代码中加入其**驱动程序**。驱动程序代码相当于应用程序和硬件设备的中间人，允许内核与设备之间交换数据。
 
-在Linux内核中有两种方法用于插人设备驱动代码：
+向Linux内核中插入设备驱动的方法有两种：
 
-- 编译进内核的设备驱动代码
-- 可插入内核的设备驱动模块
+- 将驱动程序编译入内核
+- 将设备驱动模块加入内核
 
 以前，插入设备驱动代码的唯一途径是重新编译内核。每次给系统添加新设备，都要重新编译一遍内核代码。随着Linux内核支持的硬件设备越来越多，这个过程变得越来越低效。不过好在Linux开发人员设计出了一种更好的将驱动代码插入运行中的内核的方法。
 
@@ -60,7 +97,7 @@ Linux把硬件当成的特殊文件，称为**设备文件**，分为3类：
 
 ##### 4 文件系统管理
 
-![](../../images/linux-024.jpg)
+![](images/image-20230219235008708.png)
 
 Linux内核采用**虚拟文件系统(Virtual File System，VFS)**作为和每个文件系统交互的接口。
 
@@ -75,7 +112,7 @@ Linus在创建Linux系统内核时，并没有可用的系统工具。然而他�
 开源软件理念允许程序员开发软件，并将其免费发布。任何人都可以使用、修改该软件，或将该软件集成进自己的系统，无需支付任何授权费用。将Linus的Linux内核和GNU操作系统工具整合起来，就产生了一款完整的、功能丰富的免费操作系统。
 尽管通常将Linux内核和GNU工具的结合体称为Linux，但你也会在互联网上看到一些Linux纯粹主义者将其称为**GNU/Linux系统**，藉此向GNU组织所作的贡献致意。
 
-##### GNU核心工具
+##### 1 GNU核心工具
 
 ###### 用以处理文件的工具
 
@@ -85,15 +122,17 @@ Linus在创建Linux系统内核时，并没有可用的系统工具。然而他�
 
 
 
-##### shell
+##### 2 shell
 
-GNU/Linux shell是一种特殊的交互式工具。它为用户提供了启动程序、管理文件系统中的文件以及运行在Linux系统上的进程的途径。sell的核心是命令行提示符。命令行提示符是shell负责交互的部分。它允许你输人文本命令，然后解释命令，并在内核中执行。
+GNU/Linux shell是一种特殊的交互式工具。它为用户提供了启动程序、管理文件系统中的文件以及运行在Linux系统上的进程的途径。
+
+sell的核心是命令行提示符。命令行提示符是shell负责交互的部分。它允许你输人文本命令，然后解释命令，并在内核中执行。
 
 | shell | 描述                                                         |
 | ----- | ------------------------------------------------------------ |
 | bash  | 默认的shell                                                  |
 | ash   | 一种运行在内存受限环境中简单的轻量级shell，但与bash shell完全兼容 |
-| korm  | 一种与Bourne shell兼容的编程shell，但支持如关联数组和浮点运算等一些高级的编程特性 |
+| korn  | 一种与Bourne shell兼容的编程shell，但支持如关联数组和浮点运算等一些高级的编程特性 |
 | tcsh  | 一种将C语言中的一些元素引人到shell脚本中的shell              |
 | zsh   | 一种结合了bash、tcsh和korm的特性，同时提供高级编程特性、共享历史文件和主题化提示符的高级shell |
 
@@ -101,17 +140,17 @@ GNU/Linux shell是一种特殊的交互式工具。它为用户提供了启动�
 
 #### Linux桌面环境
 
-##### X Window系统
+##### 1 X Window系统
 
-##### KDE桌面
+##### 2 KDE桌面
 
-##### GNOME桌面
+##### 3 GNOME桌面
 
-##### Unity桌面
+##### 4 其它桌面
 
 
 
-#### Linux发行版
+### 1.2 Linux发行版
 
 不同Linux发行版通常可以分为：
 
@@ -125,9 +164,11 @@ GNU/Linux shell是一种特殊的交互式工具。它为用户提供了启动�
 
 ![](../../images/linux-027.jpg)
 
+## 2 走进shell
 
 
-### 3 基本bash shell 命令
+
+## 3 基本bash shell 命令
 
 #### 3.1 启动shell
 
@@ -305,7 +346,7 @@ head
 
 
 
-### 4 更多bash shell 命令
+## 4 更多bash shell 命令
 
 #### 4.1 监测程序  
 
@@ -563,7 +604,7 @@ killall http*
 
 
 
-### 5. 理解shell
+## 5. 理解shell
 
 
 
@@ -692,7 +733,7 @@ echo is /bin/echo
 
 
 
-### 6.Linux环境变量
+## 6.Linux环境变量
 
 #### 6.1 环境变量：
 
@@ -887,7 +928,7 @@ $ echo ${mytest[*]} one two four five
 
 
 
-### 7.Linux文件权限
+## 7.Linux文件权限
 
 #### 7.1 Linux的安全性
 
@@ -1015,7 +1056,7 @@ Linux系统上共享文件的方法是创建组。
 
 
 
-### 8 管理文件系统
+## 8 管理文件系统
 
 
 
@@ -1069,7 +1110,7 @@ Linux逻辑卷管理器（logical volume manager, **LVM**）
 
 
 
-### 9 安装软件程序
+## 9 安装软件程序
 
 包管理系统(package management system, **PMS**)
 
@@ -1151,7 +1192,7 @@ dnf分别检查了两个仓库：本地系统和默认的fedora仓库。
 
 
 
-### 10 使用编辑器
+## 10 使用编辑器
 
 #### Vim
 
@@ -1165,7 +1206,7 @@ dnf分别检查了两个仓库：本地系统和默认的fedora仓库。
 
 
 
-## 二、shell脚本编程基础
+# 二、shell脚本编程基础
 
 ### 11 构建基本脚本
 
@@ -2326,7 +2367,7 @@ Linux系统和应用程序可以生成超过30个信号。Linux编程时常见�
 
 ??
 
-## 三、高级shell脚本编程
+# 三、高级shell脚本编程
 
 ### 17 创建函数
 
@@ -2804,9 +2845,95 @@ print $1 text $6
 
 > 注意，在gawk脚本中，引用变量值时无须像shell脚本那样使用美元符号。
 
+##### 6.在处理数据前运行脚本
 
+`BEGIN`关键字会强制gawk在读取数据前执行BEGIN关键字之后指定的脚本：
 
+```shell
+$ gawk 'BEGIN {print "Hello World!"}'
+Hello World!
+$
+```
 
+这次print命令会在读取数据前显示文本。但在显示过文本后，脚本就直接结束了，不等待任何数据。
+
+原因在于BEGIN关键字在处理任何数据之前仅应用指定的脚本。如果想使用正常的脚本来处理数据，则必须用另一个区域来定义脚本：
+
+```shell
+$ cat data3.txt
+Line 1
+Line 2
+Line 3
+$
+$ gawk 'BEGIN {print "The data3 File Contents:"}
+> {print $0}' data3.txt
+The data3 File Contents:
+Line 1
+Line 2
+Line 3
+$
+```
+
+现在，在gawk执行了BEGIN脚本后，会用第二段脚本来处理文件数据。
+
+###### 7.在处理数据后运行脚本
+
+和BEGIN关键字类似，END关键字允许指定一段脚本，gawk会在处理完数据后执行这段脚本：
+
+```shell
+$ gawk 'BEGIN {print "The data3 File Contents:"} 
+> {print $0}
+> END {print "End of File"}' data3.txt
+The data3 File Contents:
+Line 1
+Line 2
+Line 3
+End of File
+$
+```
+
+gawk脚本在打印完文件内容后，会执行END脚本中的命令。这是在处理完所有正常数据后给报告添加页脚的最佳方法。
+
+一个小型脚本文件：
+
+```shell
+$ cat script4.gawk
+BEGIN {
+print "The latest list of users and shells"
+print "UserID  \t Shell"
+print "------- \t -------"
+FS=":"
+}
+
+{
+print $1 "       \t "  $7
+}
+
+END {
+print "This concludes the listing"
+}
+$
+```
+
+其中，BEGIN脚本用于为报告创建标题。另外还定义了一个殊变量FS。这是定义字段分隔符的另一种方法。
+
+输出：
+
+```shell
+$ gawk -f script4.gawk /etc/passwd
+The latest list of users and shells
+UserID           Shell
+--------         -------
+root             /bin/bash
+daemon           /usr/sbin/nologin
+[...]
+christine        /bin/bash
+sshd             /usr/sbin/nologin
+This concludes the listing
+$
+```
+
+#### 19.2 sed编辑器基础命令
 
 
 
@@ -3098,7 +3225,7 @@ sed编辑器有另外一块称作**保持空间**（hold space）的缓冲区域
 
 
 
-## 四、创建实用的脚本
+# 四、创建实用的脚本
 
 
 
