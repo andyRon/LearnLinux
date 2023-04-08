@@ -1891,7 +1891,7 @@ lm_sensors，是一款基于linux系统的[硬件监控](https://baike.baidu.com
 
 #### 什么是开放源码、编译器和可执行文件
 
-Linux系统中的真正可执行文件都是二进制文件，例如/usr/bin/passwd，/bin/touch等。shell scripts是利用shell（如bash）程序来执行的。
+Linux系统中的真正可执行文件都是二进制文件，例如`/usr/bin/passwd`，`/bin/touch`等。shell scripts是利用shell（如bash）程序来执行的。
 
 ```shell
 # file /bin/bash
@@ -2064,11 +2064,11 @@ C语言里面的sin函数是写在 libm.so 这个数学函数库中。
 
 
 
-#### 21.5 函数库管理
+### 21.5 函数库管理
 
 
 
-#### 21.6 检验软件的正确性
+### 21.6 检验软件的正确性
 
 
 
