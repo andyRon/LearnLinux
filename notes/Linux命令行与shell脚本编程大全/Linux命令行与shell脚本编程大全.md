@@ -2935,6 +2935,245 @@ $
 
 #### 19.2 sed编辑器基础命令
 
+##### 更多替换选项
+
+```shell
+$ cat data4.txt
+This is a test of the test script.
+This is the second test of the test script.
+$　　　　
+$ sed 's/test/trial/' data4.txt
+This is a trial of the test script.
+This is the second trial of the test script.
+$
+```
+
+- 替换标志
+
+```
+s/pattern/replacement/flags
+```
+
+4种可用的替换标志。
+
+- 数字，指明新文本将替换行中的第几处匹配。
+- g，指明新文本将替换行中所有的匹配。
+- p，指明打印出替换后的行。
+- `w file`，将替换的结果写入文件。
+
+```shell
+$ sed 's/test/trial/2' data4.txt
+This is a test of the trial script.
+This is the second test of the trial script.
+
+$ cat data5.txt
+This is a test line.
+This is a different line.
+$
+$ sed -n 's/test/trial/p' data5.txt
+This is a trial line.
+$
+
+$ sed 's/test/trial/w test.txt' data5.txt
+This is a trial line.
+This is a different line.
+$
+$ cat test.txt
+This is a trial line.
+```
+
+-n选项会抑制sed编辑器的输出，而替换标志p会输出替换后的行。将二者配合使用的结果就是只输出被替换命令修改过的行。
+
+- 替代字符
+
+🔖
+
+##### 使用地址
+
+行寻址
+
+1. 数字形式的行寻址
+
+在命令中指定的行地址既可以是单个行号，也可以是用起始行号、逗号以及结尾行号指定的行区间。
+
+```shell
+$ cat data1.txt
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+$
+$ sed '2s/dog/cat/' data1.txt
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+$
+
+$ sed '2,3s/dog/cat/' data1.txt
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy dog.
+$
+
+$ sed '2,$s/dog/cat/' data1.txt
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy cat.
+The quick brown fox jumps over the lazy cat.
+$
+```
+
+2. 使用文本模式过滤 `/pattern/command`
+
+```shell
+$ grep /bin/bash /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+christine:x:1001:1001::/home/christine:/bin/bash
+rich:x:1002:1002::/home/rich:/bin/bash
+$
+$ sed '/rich/s/bash/csh/' /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+daemon:x:1:1:daemon:/usr/sbin:/usr/sbin/nologin
+[...]
+christine:x:1001:1001::/home/christine:/bin/bash
+sshd:x:126:65534::/run/sshd:/usr/sbin/nologin
+rich:x:1002:1002::/home/rich:/bin/csh
+$
+```
+
+3. 命令组
+
+```shell
+$ sed '2{
+> s/fox/toad/
+> s/dog/cat/
+> }' data1.txt
+The quick brown fox jumps over the lazy dog.
+The quick brown toad jumps over the lazy cat.
+The quick brown fox jumps over the lazy dog.
+The quick brown fox jumps over the lazy dog.
+$
+```
+
+##### 删除行
+
+```shell
+$ cat data6.txt
+This is line number 1.
+This is line number 2.
+This is the 3rd line.
+This is the 4th line.
+$
+$ sed '3d' data6.txt
+This is line number 1.
+This is line number 2.
+This is the 4th line.
+$
+
+$ sed '2,3d' data6.txt
+This is line number 1.
+This is the 4th line.
+$
+
+# sed编辑器的模式匹配特性也适用于删除命令
+$ sed '/number 1/d' data6.txt
+This is line number 2.
+This is the 3rd line.
+This is the 4th line.
+$
+```
+
+> 记住，sed编辑器不会修改原始文件。你删除的行只是从sed编辑器的输出中消失了。原始文件中仍然包含那些“被删掉”的行。
+
+
+
+##### 插入和附加文本
+
+- 插入（insert）（`i`）命令会在指定行前增加一行。
+- 附加（append）（`a`）命令会在指定行后增加一行。
+
+🔖
+
+```shell
+$ echo "Test Line 2" | sed 'i\Test Line 1'
+Test Line 1
+Test Line 2
+$
+```
+
+
+
+##### 修改行
+
+
+
+##### 转换命令
+
+
+
+##### 再探打印
+
+1. 打印行
+2. 打印行号
+3. 列出行
+
+
+
+#### 使用sed处理文件
+
+1. 写入文件
+
+```shell
+$ sed '1,2w test.txt' data6.txt
+This is line number 1.
+This is line number 2.
+This is the 3rd line.
+This is the 4th line.
+$
+$ cat test.txt
+This is line number 1.
+This is line number 2.
+$
+
+$ cat data12.txt
+Blum, R       Browncoat
+McGuiness, A  Alliance
+Bresnahan, C  Browncoat
+Harken, C     Alliance
+$
+$ sed -n '/Browncoat/w Browncoats.txt' data12.txt
+$
+$ cat Browncoats.txt
+Blum, R       Browncoat
+Bresnahan, C  Browncoat
+$
+```
+
+2. 从文件读取数据
+
+```shell
+$ cat data13.txt
+This is an added line.
+This is a second added line.
+$
+$ sed '3r data13.txt' data6.txt
+This is line number 1.
+This is line number 2.
+This is the 3rd line.
+This is an added line.
+This is a second added line.
+This is the 4th line.
+$
+```
+
+
+
+#### 19.3 实战演练
+
+
+
 
 
 ### 20 正则表达式  
