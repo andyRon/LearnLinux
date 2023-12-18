@@ -5,8 +5,6 @@
 
 [鸟哥的首页](https://linux.vbird.org/)
 
-https://zq99299.github.io/linux-tutorial/tutorial-basis
-
 [The Linux Kernel documentation](https://www.kernel.org/doc/html/v4.20/index.html)
 
 [TLDP](http://www.tldp.org/)（The Linux Documentation Project）
