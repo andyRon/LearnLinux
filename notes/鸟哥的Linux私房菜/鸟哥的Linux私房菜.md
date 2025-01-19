@@ -37,11 +37,11 @@ ip add
 
 #### 计算机硬件的五大单元
 
-![](../../images/linux-001.jpg)
+![](images/linux-001.jpg)
 
-输入单元、输出单元、CPU 内部的控制单元、算数逻辑单元、内存
+==输入单元==、==输出单元==、CPU内部的==控制单元==、==算数逻辑单元==、==内存==
 
-#### 一切设计的起点： CPU 的架构
+#### 一切设计的起点： CPU的架构
 
 - 精简指令集（==RISC==，Reduced Instruction Set Computer）。指令集较为精简，每个指令的执行时间都很短，完成的动作也很单纯，指令的执行性能较佳; 但是若要做复杂的事情，就要由多个指令来完成。   
   - ==ARM架构==。手机、PDA、导航系统、网络设备(交换器、路由器等)等【目前世界上使用范围最广的CPU架构】
@@ -54,7 +54,7 @@ ip add
   - 64位的被统称为==x86_64==
 
 
-> 所谓的位指的是**CPU一次数据读取的最大量**，也就是**最大寻址空间**。一个内存地址对应一个字节（Byte）。
+> 所谓的位指的是**CPU一次数据读取的最大量**，也就是**==最大寻址空间==**。一个内存地址对应一个字节（Byte）。
 >
 > 64位CPU代表CPU一次可以读写64bits这么多的数据，32位CPU则是CPU一次只能读取32位的意思。也就是32位最大支持4G内存，64位理论上最大支持`2^64`字节内存，但受其他因素达不到。
 
@@ -67,9 +67,7 @@ ip add
 
 
 
-
-
-#### 计算单位
+#### 电脑上常用的计算单位
 
 - 容量单位
 
@@ -88,6 +86,12 @@ CPU运算速度常用MHz、GHz等，Hz表示秒分之一。
 网速常用的是bit为单位，Mbps（Mbits per second），常说100M网速，要除以8，大约12.5MBps。
 
 ### 0.2 个人电脑架构与相关设备元件
+
+一般消费者常说的电脑通常指的就是x86的个人电脑架构。
+
+Intel官网提供的Z390芯片组结构图：
+
+![](images/5b92708153da2b4b341fcd4bbdb368dd.png)
 
 #### 1 CPU
 
@@ -239,7 +243,7 @@ BIOS程序也可以修改CMOS中的数据， 每种主板调用BIOS设置程序�
 
 #### 7 电源供应器
 
-
+==能源转换率==
 
 ### 0.3 数据表示方式
 
@@ -265,11 +269,15 @@ BIOS程序也可以修改CMOS中的数据， 每种主板调用BIOS设置程序�
 
 ##### 操作系统核心（Kernel）
 
+操作系统（Operating System, OS）其实也是一组程序， 这组程序的重点在于**管理电脑的所有活动以及驱动系统中的所有硬件**。
+
+操作系统的功能就是让CPU可以开始判断逻辑与运算数值、让内存可以开始载入/读出数据与程序码、让硬盘可以开始被存取、让网卡可以开始传输数据、让所有周边可以开始运行等等。
+
 
 
 ##### 系统调用（System Call）
 
-
+![](images/image-20250119182832628.png)
 
 ##### 操作系统核心的功能：
 
@@ -287,6 +295,8 @@ BIOS程序也可以修改CMOS中的数据， 每种主板调用BIOS设置程序�
 
 #### 3 应用程序
 
+
+
 ### 0.5 小结
 
 `cat /proc/cpuinfo`
@@ -298,8 +308,6 @@ BIOS程序也可以修改CMOS中的数据， 每种主板调用BIOS设置程序�
 ## 1 Linux是什么与如何学习
 
 ### 1.1 Linux是什么
-
-
 
 ####  Linux之前，Unix的历史
 
@@ -418,9 +426,30 @@ Linux的核心版本编号类似：`uname -r`
 主版本.次版本.释出版本-修改版本
 ```
 
+##### 奇数、偶数版本分类
+
+- 主、次版本为奇数：发展中版本（development）
+- 主、次版本为偶数：稳定版本（stable）
+
+##### 主线版本、长期维护版本（longterm version）
+
+从 3.0 版开始，奇数、偶数的编号格式取消，核心主要依据主线版本（MainLine）来开发，开发完毕后会往下一个主线版本进行。 
+
+##### Linux 核心版本与 Linux 发布商版本
+
+
+
+
+
 
 
 #### Linux distributions
+
+Kernel + Softwares + Tools + 可完整安装程序，称之为Linux distribution。
+
+![](images/image-20250119183930076.png)
+
+
 
 各大Linux Distributions的主要异同：支持标准！
 
@@ -439,7 +468,7 @@ Linux distributions可以以软件安装方式分为两大主流 ：
 
 #### 企业
 
-- 网络服务器【最热门】
+- ==网络服务器==【最热门】
 
 - 关键任务的应用（金融数据库、大型企业网管环境）
 
@@ -488,7 +517,7 @@ Linux distributions可以以软件安装方式分为两大主流 ：
 1. 在自己的主机**/**网络数据库上查询**How-To**或**FAQ**
 
 - Linux自己的文件数据: /usr/share/doc
-- [TLDP](http://www.tldp.org/)（The Linux Documentation Project），这个网站几乎列出了所有Linux上 面可以看到的文献数据，各种How-To的作法等等。
+- [TLDP](http://www.tldp.org/)（The Linux Documentation Project），这个网站几乎列出了所有Linux上面可以看到的文献数据，各种How-To的作法等等。
 
 2. 注意Linux各种输出信息，自行解决疑难杂症
 
@@ -498,13 +527,13 @@ Linux distributions可以以软件安装方式分为两大主流 ：
 
 `last`
 
-`lastb`
+`lastb`   查看记录用户登录失败信息的二进制文件`/var/log/btmp`的内容分
 
 3. 搜索引擎
 
 
 
-### 习题
+### 1.5 习题
 
 
 
@@ -562,7 +591,7 @@ Linux支持的更多设备：[devices](https://www.kernel.org/doc/html/v4.20/adm
 
 ![](images/image-20230202180135369.png)
 
-#### 2 MSDOS（MBR）与GPT磁盘分区表（partition table）
+#### 2 MSDOS（MBR）与GPT磁盘分区表（partition table）🔖
 
 ##### 磁盘的组成
 
@@ -609,17 +638,27 @@ SAMBA （与windows文件共享） /home
 
 
 
-#### 3 开机流程中的BIOS与UEFI开机检测程序
+#### 3 开机流程中的BIOS与UEFI开机检测程序 🔖
+
+##### BIOS搭配MBR/GPT的开机流程
 
 
 
+##### UEFI BIOS搭配GPT开机的流程
+
+UEFI（统一可扩展固件接口，Unified Extensible Firmware Interface） 是一种用于计算机启动过程的新型固件接口标准。
+
+![](images/image-20250119223737514.png)
 
 
-#### 4 Linux安装模式下，磁盘分区的选择（极重要）
+
+#### 4 Linux安装模式下，磁盘分区的选择（极重要）❤️
 
 ##### 目录树结构（directory tree）
 
-
+> “如何结合目录树的架构与磁盘内的数据”？
+>
+> 挂载（mount）
 
 ##### 文件系统与目录树的关系（挂载）
 
@@ -628,6 +667,12 @@ SAMBA （与windows文件共享） /home
 由于整个Linux系统最重要的是根目录，因此根目录一定需要挂载到某个分区的。 至于其他的目录则可依使用者自己的需求来给予挂载到不同的分区。
 
 ![](images/image-20230201184300558.png)
+
+##### distributions安装时，挂载点与磁盘分区的规划
+
+
+
+
 
 ### 2.3 安装Linux前的规划
 
@@ -671,7 +716,7 @@ FTP
 
 
 
-#### 鸟哥的两个实际案例
+#### 鸟哥的两个实际案例🔖
 
 
 
@@ -855,11 +900,11 @@ GNU coreutils 8.22                        June 2014                             
 
 man page 中第一行代号的意义（`man 7 man` 查看）：
 
-![](../../images/linux-004.jpg)
+![](images/linux-004.jpg)
 
 man page中每个部分的含义：
 
-![](../../images/linux-005.jpg)
+![](images/linux-005.jpg)
 
 有时还有Authors与Copyright等，不过也有很多时候仅有NAME与DESCRIPTION等部分。
 
@@ -1008,7 +1053,7 @@ suspend    进入休眠模式
 
 #### Linux文件属性
 
-![](../../images/linux-006.jpg)
+![](images/linux-006.jpg)
 
 - 第一栏代表这个文件的类型与权限（permission）
 
@@ -1188,7 +1233,7 @@ linux文件是没有所谓的“扩展名”，文件名只是为了让用户了
 
  [FHS](http://www.pathname.com/fhs/)(Filesystem Hierarchy Standard）是官方对不同Linux发行版目录的限制。
 
-![](../../images/linux-019.jpg)
+![](images/linux-019.jpg)
 
 - 可分享的:可以分享给其他系统挂载使用的目录，所以包括执行文件与用户的邮件等数据， 是能够分享给网络上其他主机挂载用的目录;
 - 不可分享的:自己机器上面运作的装置档案或者是与程序有关的 socket 档案等， 由于仅与自身机器有关，所以当然就不适合分享给其他主机了。
@@ -1213,13 +1258,13 @@ FHS仅定义的三个目录：
 
 因此 FHS 标准建议: 根目录(/)所在分割槽应该越小越好， 且应用程序所安装的软件最好不要与根目录 放在同一个分割槽内，保持根目录越小越好。
 
-![](../../images/linux-007.jpg)
+![](images/linux-007.jpg)
 
-![](../../images/linux-008.jpg)
+![](images/linux-008.jpg)
 
 FHS标准外需要了解的一些目录：
 
-![](../../images/linux-009.jpg)
+![](images/linux-009.jpg)
 
 
 
@@ -1237,15 +1282,15 @@ FHS标准外需要了解的一些目录：
 
 依据 FHS 的基本定义，/usr 里面放置的数据属于可分享的与不可变动的(shareable, static)， 如果你知 道如何透过网络进行分割槽的挂载(例如在服务器篇会谈到的 **NFS服务器**)，那么/usr 确实可以分享给局 域网络内的其他主机来使用喔!
 
-![](../../images/linux-010.jpg)
+![](images/linux-010.jpg)
 
-![image-20200204212734454](../../images/linux-011.jpg)
+![image-20200204212734454](images/linux-011.jpg)
 
 ##### /var的意义与内容
 
 如果/usr 是安装时会占用较大硬盘容量的目录，那么/var 就是在系统运作后才会渐渐占用硬盘容量的目 录。 因为/var 目录主要针对**常态性变动的文件**，包括快取(cache)、登录档(log file)以及某些软件运作所产生的档案， 包括程序档案(lock file, run file)，或者例如 MySQL 数据库的档案等等。
 
-![](../../images/linux-012.jpg)
+![](images/linux-012.jpg)
 
 ##### 在FHS标准基础上，各家的distributions有所不同
 
@@ -1984,8 +2029,9 @@ history
 
 #### 参数代换：xargs
 
-
 #### 关于减号【-】的用途
+
+
 
 ## 11 正则表达式与文件格式化处理
 
@@ -2340,7 +2386,7 @@ history
 
 同样的program`/bin/bash`在不同用户登录时，执行为不同的process，分配了不同的PID：
 
-![](../../images/linux-020.jpg)
+![](images/linux-020.jpg)
 
 
 
@@ -2362,7 +2408,7 @@ F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 
 ###### fork 和 exec：程序调用的流程
 
-![](../../images/linux-021.jpg)
+![](images/linux-021.jpg)
 
 
 
