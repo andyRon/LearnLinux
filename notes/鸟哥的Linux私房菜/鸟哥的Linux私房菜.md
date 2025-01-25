@@ -2009,47 +2009,136 @@ Linux 最传统的磁盘文件系统 （filesystem） 使用的是 EXT2 这个�
 
 
 
-#### 7.1.2 文件系统特性🔖
+#### 7.1.2 文件系统特性
+
+磁盘分区完毕后还需要进行格式化（format），之后操作系统才能够使用这个文件系统。 
+
+每种操作系统所设置的文件属性/权限并不相同， 为了存放这些文件所需的数据，因此就需要将分区进行格式化，以成为操作系统能够利用的“文件系统格式（filesystem）”。
+
+传统的磁盘与文件系统之应用中，一个分区就是只能够被格式化成为一个文件系统，所以我们可以说一个 ==filesystem== 就是一个 ==partition==。
+
+但是由于新技术的利用，例如我们常听到的==LVM==与软件==磁盘阵列==（software raid）， 这些技术可以将一个分区格式化为多个文件系统（例如LVM），也能够将多个分区合成一个文件系统（LVM, RAID）！ 所以说，目前我们在格式化时已经不再说成针对 partition 来格式化了， 通常我们可以称呼一个可被挂载的数据为一个文件系统而不是一个分区喔！
+
+操作系统文件数据包括（每个inode与block都有编号）：
+
+- ==superblock==：记录此 filesystem 的整体信息，包括inode/block的总量、使用量、剩余量， 以及文件系统的格式与相关信息等；
+
+- ==inode==：记录文件的属性，一个文件占用一个inode，同时记录此文件的数据所在的 block 号码；
+
+- ==block==：实际记录文件的内容，若文件太大时，会占用多个 block 。
+
+![](images/image-20250125180801329.png)
+
+==索引式文件系统==（indexed allocation）
+
+其他文件系统，U盘（闪存）使用FAT格式，这种格式的文件系统并没有 inode 存在，每个 block 号码都记录在前一个 block 当中。
+
+![](images/image-20250125181026789.png)
+
+> “==磁盘重组==”  需要磁盘重组的原因就是**文件写入的 block 太过于离散了，此时文件读取的性能将会变的很差所致**。 这个时候可以通过磁盘重组将同一个文件所属的 blocks 汇整在一起，这样数据的读取会比较容易啊！ 
 
 
 
-#### 7.1.3 Linux的EXT2文件系统（inode）🔖
+#### 7.1.3 Linux的EXT2文件系统（inode）
 
+ Ext2 是索引式文件系统
 
+![](images/image-20250125181334456.png)
 
 ##### data block(数据区块)
 
+Ext2 所支持的 block 大小有 1K, 2K 及 4K三种而已。
 
+| Block 大小         | 1KB  | 2KB   | 4KB  |
+| ------------------ | ---- | ----- | ---- |
+| 最大单一文件限制   | 16GB | 256GB | 2TB  |
+| 最大文件系统总容量 | 2TB  | 8TB   | 16TB |
+
+>  Ext2 已经能够支持大于 2GB 以上的单一文件大小，不过某些应用程序依然使用旧的限制。
+
+ Ext2的 block：
+
+- 原则上，block 的大小与数量在格式化完就不能够再改变了（除非重新格式化）；
+- 每个 block 内最多只能够放置一个文件的数据；
+- 承上，如果文件大于 block 的大小，则一个文件会占用多个 block 数量；
+- 承上，若文件小于 block ，则该 block 的剩余容量就不能够再被使用了（磁盘空间会浪费）。
+
+block选用4K时，在有很多小文件情况下，会浪费空间；如果 block 较小的话，那么大型文件将会占用数量更多的 block ，而 inode 也要记录更多的 block 号码，此时将可能导致文件系统不良的读写性能。
 
 ##### inode table 
+
+inode记录的文件数据至少有：
+
+- 该文件的存取模式（read/write/excute）；
+
+- 该文件的拥有者与群组（owner/group）；
+
+- 该文件的容量；
+- 该文件创建或状态改变的时间（ctime）；
+- 最近一次的读取时间（atime）；
+- 最近修改的时间（mtime）；
+- 定义文件特性的旗标（flag），如 SetUID...；
+- 该文件真正内容的指向 （pointer）；
+
+inode 的数量与大小也是在格式化时就已经固定了，除此之外 inode 还有些什么特色呢？
+
+- 每个 inode 大小均固定为 128 Bytes （新的 ext4 与 xfs 可设置到 256 Bytes）；
+
+- 每个文件都仅会占用一个 inode 而已；
+
+- 承上，因此文件系统能够创建的文件数量与 inode 的数量有关；
+
+- 系统读取文件时需要先找到 inode，并分析 inode 所记录的权限与使用者是否符合，若符合才能够开始实际读取 block 的内容。
+
+🔖
 
 
 
 ##### Superblock(超级区块)
 
+一般大小为==1024Bytes==。
 
+Superblock记录整个 filesystem 相关信息。
+
+- block 与 inode 的总量；
+- 使用与已使用的 inode/block 数量；
+- block与inode的大小 （block 为 1, 2, 4K，inode 为128Bytes或256Bytes）；
+- filesystem 的挂载时间、最近一次写入数据的时间、最近一次检验磁盘（fsck）的时间等文件系统的相关信息；
+
+- 一个 valid bit 数值，若此文件系统已被挂载，则 valid bit 为 0 ，若未被挂载，则 valid bit 为 1 。
+
+除了第一个 block group 内会含有 superblock 之外，后续的 block group 也可能含有 superblock，主要是为了备份。
+
+`dumpe2fs`
 
 ##### Filesystem Description(文件系统描述说明)
 
-
+描述每个 block group 的开始与结束的 block 号码，以及说明每个区段 （superblock, bitmap, inodemap, data block） 分别介于哪一个 block 号码之间。
 
 ##### block bitmap(区块对照表)
 
-
+从block bitmap 当中可以知道哪些 block 是空的。
 
 ##### inode bitmap(inode 对照表)
 
+与 block bitmap 是类似的功能，只是 block bitmap 记录的是使用与未使用的 block 号码，inode bitmap 则是记录使用与未使用的 inode 号码。
+
+##### dumpe2fs: 查询 Ext家族 superblock 信息的指令
+
+```sh
+$ dumpe2fs [-bh] 设备文件名
+选项与参数：
+-b ：列出保留为坏轨的部分（一般用不到吧！？）
+-h ：仅列出 superblock 的数据，不会列出其他的区段内容！
+```
+
+![](images/image-20250125181334586.png)
 
 
-##### dumpe2fs: 查询 Ext 家族 superblock 信息的指令
 
 
 
-
-
-
-
-#### 7.1.4 与目录树的关系
+#### 7.1.4 与目录树的关系  🔖
 
 
 
@@ -2087,7 +2176,7 @@ cat /proc/filesystems
 
 
 
-#### 7.1.9 XFS文件系统简介❤️
+#### 7.1.9 XFS文件系统简介🔖
 
 CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文件系统了!
 
@@ -2118,6 +2207,15 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 范例一:将系统内所有的 filesystem 列出来! 
 [root@study ~]# df
+Filesystem 1K-blocks Used Available Use% Mounted on
+/dev/mapper/centos-root 10475520 3409408 7066112 33% /
+devtmpfs 627700 0 627700 0% /dev
+tmpfs 637568 80 637488 1% /dev/shm
+tmpfs 637568 24684 612884 4% /run
+tmpfs 637568 0 637568 0% /sys/fs/cgroup
+/dev/mapper/centos-home 5232640 67720 5164920 2% /home
+/dev/vda2 1038336 133704 904632 13% /boot
+# 在 Linux 下面如果 df 没有加任何选项，那么默认会将系统内所有的
 ```
 
 - Filesystem:代表该文件系统是在哪个 partition ，所以列出设备名称; 
@@ -2138,9 +2236,21 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 范例五:将目前各个 partition 当中可用的 inode 数量列出 
 [root@study ~]# df -ih
+文件系统                       Inodes 已用(I) 可用(I) 已用(I)% 挂载点
+devtmpfs                         442K     406    441K       1% /dev
+tmpfs                            449K       3    449K       1% /dev/shm
+tmpfs                            800K     893    800K       1% /run
+/dev/mapper/cs_centos9--2-root    21M    211K     21M       2% /
+/dev/mapper/cs_centos9--2-home    10M     246     10M       1% /home
+/dev/sda2                        512K     225    512K       1% /boot
+/dev/sda1                           0       0       0        - /boot/efi
+tmpfs                             90K      55     90K       1% /run/user/42
+tmpfs                             90K      37     90K       1% /run/user/1000
 ```
 
+df主要读取的数据几乎都是针对一整个文件系统，因此读取的范围主要是在 Superblock 内的信息， 所以这个指令显示结果的速度非常的快速！
 
+> 要留意根目录的剩余容量！ 因为所有的数据都是由根目录衍生出来的，因此当根目录的剩余容量剩下 0 时，那你的 Linux可能就问题很大了。
 
 ##### du
 
@@ -2153,49 +2263,228 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 -S :不包括子目录下的总计，与 -s 有点差别。
 -k :以 KBytes 列出容量显示;
 -m :以 MBytes 列出容量显示;
+
+范例一：列出目前目录下的所有文件大小
+[root@study ~]# du
+
+范例二：同范例一，但是将文件的容量也列出来
+[root@study ~]# du -a
+
+范例三：检查根目录下面每个目录所占用的容量
+[root@study ~]# du -sm /*
 ```
 
 
 
+#### 实体链接与符号链接： ln 🔖
+
+##### Hard Link（硬链接）
+
+前文：
+
+- 每个文件都会占用一个 inode ，文件内容由 inode 的记录来指向；
+
+- 想要读取该文件，必须要经过目录记录的文件名来指向到正确的 inode 号码才能读取。
+
+也就是说，其实**文件名只与目录有关，但是文件内容则与 inode 有关**。
+
+> 有没有可能有多个文件名对应到同一个 inode 号码呢？
+
+**hard link只是在某个目录下新增一笔文件名链接到某inode号码的关连记录而已**。
+
+```sh
+ln /etc/crontab . 
+
+ll -i
+```
 
 
 
+hard link的限制：
 
-#### 实体链接与符号链接： ln🔖🔖
+- 不能跨 Filesystem；
+- 不能 link 目录。
+
+##### Symbolic Link（符号链接）
+
+```sh
+ln -s /etc/crontab crontab2
+```
 
 
 
-
+##### 关于目录的 link 数量
 
 
 
 ### 7.3 磁盘的分区、格式化、检验与挂载
 
+新增一颗磁盘时，需要做：
 
+1. 对磁盘进行分区，以创建可用的 partition ；
+
+2. 对该 partition 进行格式化 （format），以创建系统可用的 filesystem；
+
+3. 若想要仔细一点，则可对刚刚创建好的 filesystem 进行检验；
+
+4. 在 Linux 系统上，需要创建挂载点 （亦即是目录），并将他挂载上来；
 
 #### 7.3.1 观察磁盘分区状态
 
+磁盘分区主要有 MBR 以及 GPT 两种格式。
+
+##### lsblk列出系统上的所有磁盘列表
+
+“ list block device ”
+
+```sh
+[root@study ~]# lsblk [-dfimpt] [device]
+选项与参数：
+-d ：仅列出磁盘本身，并不会列出该磁盘的分区数据
+-f ：同时列出该磁盘内的文件系统名称
+-i ：使用 ASCII 的线段输出，不要使用复杂的编码 （再某些环境下很有用）
+-m ：同时输出该设备在 /dev 下面的权限数据 （rwx 的数据）
+-p ：列出该设备的完整文件名！而不是仅列出最后的名字而已。
+-t ：列出该磁盘设备的详细数据，包括磁盘伫列机制、预读写的数据量大小等
+
+范例一
+：列出本系统下的所有磁盘与磁盘内的分区信息
+[root@study ~]# lsblk
+NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+sr0 11:0 1 1024M 0 rom
+vda 252:0 0 40G 0 disk 							# 一整颗磁盘
+|-vda1 252:1 0 2M 0 part
+|-vda2 252:2 0 1G 0 part /boot
+`-vda3 252:3 0 30G 0 part
+  |-centos-root 253:0 0 10G 0 lvm / 			# 在 vda3 内的其他文件系统
+  |-centos-swap 253:1 0 1G 0 lvm [SWAP]
+  `-centos-home 253:2 0 5G 0 lvm /home
+```
+
+- MAJ:MIN：其实核心认识的设备都是通过这两个代码来熟悉的！分别是主要：次要设备代码！
+
+- RM：是否为可卸载设备 （removable device），如光盘、USB 磁盘等等
+- RO：是否为只读设备的意思
+- TYPE：是磁盘 （disk）、分区 （partition） 还是只读存储器 （rom） 等输出
+- MOUTPOINT：挂载点
+
+```sh
+范例二：仅列出 /dev/vda 设备内的所有数据的完整文件名
+[root@study ~]# lsblk -ip /dev/vda
+NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+/dev/vda 252:0 0 40G 0 disk
+|-/dev/vda1 252:1 0 2M 0 part
+|-/dev/vda2 252:2 0 1G 0 part /boot
+`-/dev/vda3 252:3 0 30G 0 part
+  |-/dev/mapper/centos-root 253:0 0 10G 0 lvm /
+  |-/dev/mapper/centos-swap 253:1 0 1G 0 lvm [SWAP]
+  `-/dev/mapper/centos-home 253:2 0 5G 0 lvm /home 			# 完整的文件名，由 / 开始写
+```
+
+```sh
+lsblk -ip /dev/sda3
+NAME                             MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+/dev/sda3                          8:3    0 62.4G  0 part 
+|-/dev/mapper/cs_centos9--2-root 253:0    0 40.6G  0 lvm  /
+|-/dev/mapper/cs_centos9--2-swap 253:1    0    2G  0 lvm  [SWAP]
+`-/dev/mapper/cs_centos9--2-home 253:2    0 19.8G  0 lvm  /home
+```
+
+##### blkid列出设备的UUID等参数
 
 
-#### 7.3.2 磁盘分区： gdisk/fdisk
+
+##### parted列出磁盘的分区表类型与分区信息
+
+```sh
+$ parted device_name print
+```
+
+```sh
+$ sudo parted /dev/sda print
+型号：ATA CentOS9-2-0 SSD (scsi)
+磁盘 /dev/sda：68.7GB
+扇区大小 (逻辑/物理)：512B/4096B
+分区表：gpt
+磁盘标志：
+
+编号  起始点  结束点  大小    文件系统  名称                  标志
+ 1    1049kB  630MB   629MB   fat32     EFI System Partition  启动, esp
+ 2    630MB   1704MB  1074MB  xfs
+ 3    1704MB  68.7GB  67.0GB                                  lvm
+```
 
 
 
-#### 7.3.3 磁盘格式化（创建文件系统）
+#### 7.3.2 磁盘分区： gdisk/fdisk 🔖
+
+**MBR 分区表请使用 fdisk 分区， GPT 分区表请使用 gdisk 分区！**
+
+##### gdisk
+
+
+
+##### `partprobe` 更新 Linux 核心的分区表信息
+
+
+
+##### 用 gdisk 删除一个分区
+
+
+
+##### fdisk
+
+
+
+
+
+#### 7.3.3 磁盘格式化（创建文件系统）🔖
+
+##### XFS文件系统`mkfs.xfs`
+
+
+
+##### XFS文件系统for RAID性能优化（Optional）
+
+
+
+##### EXT4文件系统mkfs.ext4
+
+
+
+##### 其他文件系统mkfs
+
+
 
 
 
 #### 7.3.4 文件系统检验
 
+##### `xfs_repair`处理 XFS 文件系统
 
 
-#### 7.3.5 文件系统挂载与卸载
+
+##### `fsck.ext4`处理 EXT4 文件系统
+
+
+
+
+
+#### 7.3.5 文件系统挂载与卸载 🔖
+
+
+
+- 单一文件系统不应该被重复挂载在不同的挂载点（目录）中；
+- 单一目录不应该重复挂载多个文件系统；
+- 要作为挂载点的目录，理论上应该都是空目录才是。
+
+
 
 
 
 #### 7.3.6 磁盘/文件系统参数修订
 
-
+mknod
 
 
 
@@ -2223,13 +2512,15 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 ### 7.6 文件系统的特殊观察与操作
 
+#### 7.6.1 磁盘空间之浪费问题
 
 
 
+#### 7.6.2 利用 GNU 的 parted 进行分区行为（Optional）
 
 
 
-
+### 小结
 
 磁盘的分割、格式化、检验与挂载
 
@@ -2245,6 +2536,10 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 
 
+### 练习🔖
+
+
+
 ## 8 文件的压缩与打包
 
 ### 8.1 压缩文件的用途和技术
@@ -2253,29 +2548,89 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 ### 8.2 常用压缩命令
 
+```
+*.Z 					compress 程序压缩的文件；
+*.zip 				zip 程序压缩的文件；
+*.gz 					gzip 程序压缩的文件；
+*.bz2 				bzip2 程序压缩的文件；
+*.xz 					xz 程序压缩的文件；
+*.tar 				tar 程序打包的数据，并没有压缩过；
+*.tar.gz 			tar 程序打包的文件，其中并且经过 gzip 的压缩
+*.tar.bz2 		tar 程序打包的文件，其中并且经过 bzip2 的压缩
+*.tar.xz 			tar 程序打包的文件，其中并且经过 xz 的压缩
+```
+
+
+
 `compress`
 
 `gzip`  `zcat`
 
 `bzip2`  `bzcat`
 
-### 8.3 打包命令tar
+
+
+#### gzip
+
+
+
+#### bzip2
+
+
+
+#### xz
+
+
+
+
+
+
+
+### 8.3 打包命令tar 🔖
 
 `tar`
+
+![](images/image-20250125204125930.png)
+
+- 压 缩：`tar -jcv -f filename.tar.bz2 要被压缩的文件或目录名称`
+
+- 查 询：`tar -jtv -f filename.tar.bz2`
+
+- 解压缩：`tar -jxv -f filename.tar.bz2 -C 欲解压缩的目录`
+
+
 
 
 
 ### 8.4 XFS文件系统的备份与还原
 
-#### xfsdump
+#### 8.4.1 XFS文件系统备份`xfsdump`
+
+##### 用 xfsdump 备份完整的文件系统
 
 
 
-#### xfsrestore 
+##### 用 xfsdump 进行累积备份 （Incremental backups）
 
 
 
-#### 用 xfsrestore 观察 xfsdump 后的备份数据内容
+
+
+
+
+#### 8.4.2 XFS 文件系统还原 `xfsrestore` 
+
+
+
+##### 用 xfsrestore 观察 xfsdump 后的备份数据内容
+
+
+
+##### 简单复原 level 0 的文件系统
+
+
+
+##### 复原累积备份数据
 
 
 
@@ -2283,9 +2638,13 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 ### 8.5 光盘写入工具
 
-`mkisofs`
+#### 8.5.1 `mkisofs`：创建镜像文件
 
-`cdrecord`
+
+
+#### 8.5.2 cdrecord：光盘烧录工具
+
+
 
 ### 8.6 其它压缩和备份工具
 
@@ -2317,7 +2676,9 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 - 一般模式
 - 编辑模式。 i/I、o/O、a/A（插入），r/R（取代）。
-- 命令模式。【:  /  ?  】 搜索、读取、存储、大量取代字符、离开、显示行号等动作。
+- 命令模式。【`:/?`】 搜索、读取、存储、大量取代字符、离开、显示行号等动作。
+
+![](images/image-20250125204916759.png)
 
 #### 按键说明
 
@@ -2341,11 +2702,45 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 
 
+#### 案例 🔖
+
+
+
+#### vim 的暂存盘、救援回复与打开时的警告讯息
+
 
 
 ### 9.3 vim的额外功能
 
+#### 9.3.1 区块选择（Visual Block）
 
+
+
+#### 9.3.2 多文件编辑
+
+
+
+#### 9.3.3 多窗口功能
+
+
+
+
+
+#### 9.3.4 vim的挑字补全功能
+
+
+
+
+
+#### 9.3.5 vim 环境设置与记录： ~/.vimrc, ~/.viminfo
+
+
+
+
+
+#### 9.3.6 vim 常用指令示意图
+
+![](images/image-20250125205757344.png)
 
 ### 9.4 其他vim使用注意事项
 
@@ -2359,7 +2754,25 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 
 
+#### 系统的合法 shell 与 /etc/shells 功能
+
+
+
+
+
+#### Bash shell 的功能
+
+
+
+
+
 #### 查询命令是否为Bash shell的内置命令:type
+
+
+
+#### 指令的下达与快速编辑按钮
+
+
 
 
 
@@ -2371,11 +2784,15 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 #### 变量的取用与设置
 
+`echo`
+
 
 
 #### 环境变量的功能
 
 `env`
+
+`set`
 
 
 
@@ -2383,7 +2800,7 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 
 
-#### 影响显示结果的语系变量（locale）
+#### 影响显示结果的语系变量（`locale`）
 
 
 
@@ -2391,25 +2808,25 @@ CentOS 7开始，默认的文件系统已经由原本的 EXT4 变成了 XFS 文�
 
 
 
-#### 与文件系统及程序的限制关系:ulimit
+#### 与文件系统及程序的限制关系:`ulimit`
 
 
 
-#### 变量内容的删除、取代与替换
+#### 变量内容的删除、取代与替换🔖
 
 
 
 ### 10.3 命令别名与历史命令
 
-alias, unalias
+`alias`, `unalias`
 
 
 
-history
+`history`
 
 
 
-### 10.4 Bash Shell 的操作环境
+### 10.4 Bash Shell的操作环境
 
 #### 路径与指令搜寻顺序
 
@@ -2417,13 +2834,42 @@ history
 
 
 
-#### bash 的进站与欢迎讯息:/etc/issue, /etc/motd
+#### bash的进站与欢迎信息:/etc/issue, /etc/motd
+
+```
+issue 内的各代码意义
+\d 本地端时间的日期；
+\l 显示第几个终端机接口；
+\m 显示硬件的等级 （i386/i486/i586/i686...）；
+\n 显示主机的网络名称；
+\O 显示 domain name；
+\r 操作系统的版本 （相当于 uname -r）
+\t 显示本地端时间的时间；
+\S 操作系统的名称；
+\v 操作系统的版本。
+```
+
+
 
 
 
 
 
 #### bash的环境配置文件
+
+`/etc/profile`
+
+`source`
+
+`~/.bashrc`
+
+
+
+`/etc/mandb.conf`
+
+`~/.bash_history`
+
+`~/.bash_logout`
 
 
 
@@ -2433,15 +2879,48 @@ history
 
 #### 通配符与特殊符号
 
+通配符：
+
+| \*    | 代表“ 0 个到无穷多个”任意字符                                |
+| ----- | ------------------------------------------------------------ |
+| ?     | 代表“一定有一个”任意字符                                     |
+| []    | 同样代表“一定有一个在括号内”的字符（非任意字符）。例如 [abcd] 代表“一定有一个字符， 可能是 a, b, c, d 这四个任何一个” |
+| [-]   | 若有减号在中括号内时，代表“在编码顺序内的所有字符”。例如 [0-9] 代表 0 到 9 之间的所有数字，因为数字的语系编码是连续的！ |
+| `[^]` | 若中括号内的第一个字符为指数符号 （^） ，那表示“反向选择”例如 `[^abc]` 代表 一定有一个字符，只要是非 a, b, c 的其他字符就接受的意思。 |
+
+特殊符号：
+
+![](images/image-20250125212357196.png)
+
 
 
 ### 10.5 数据流重定向
 
-#### 什么是数据流重定向
+#### 10.5.1 什么是数据流重定向
+
+![](images/image-20250125212642355.png)
+
+##### standard output 与 standard error output
 
 
 
-#### 命令执行的判断根据：;、&&、||
+1. 标准输入 （stdin） ：代码为 0 ，使用 < 或 << ；
+2. 标准输出 （stdout）：代码为 1 ，使用 > 或 >> ；
+3. 标准错误输出（stderr）：代码为 2 ，使用 2> 或 2>> ；
+
+
+
+##### /dev/null 垃圾桶黑洞设备与特殊写法
+
+
+
+##### standard input ： < 与 <<
+
+
+
+#### 10.5.2 命令执行的判断根据：;、&&、||
+
+
 
 
 
@@ -2452,22 +2931,31 @@ history
 
 
 
-
 #### 排序命令：sort、wc、uniq
+
 
 
 #### 双向重定向：tee
 
 
+
 #### 字符转换命令：tr、col、join、paste、expand
+
 
 
 #### 划分命令：split
 
 
+
 #### 参数代换：xargs
 
+
+
 #### 关于减号【-】的用途
+
+
+
+### 练习
 
 
 
