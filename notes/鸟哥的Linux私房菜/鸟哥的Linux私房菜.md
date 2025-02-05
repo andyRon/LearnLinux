@@ -3201,90 +3201,500 @@ grep -n 'go\{2,\}g' regular_express.txt
 
 
 
-## 13 Linux账号管理与ACL权限控制
+## 13 Linux账号管理与ACL权限控制 🔖
 
 ### 13.1 Linux的账号与用户组
 
-
 #### 用户标识符：UID与GID
 
+Linux不认识『账号名字』，只认识ID。
 
-#### 用户账号
+`/etc/passwd`
+
+`/etc/group`	
+
+```sh
+$ id andyron
+用户id=1000(andyron) 组id=1000(andyron) 组=1000(andyron),10(wheel),977(docker)
+```
 
 
-#### 关于用户组：有效与初始用户组, groups, newgr
+
+#### 使用者账号
+
+密码表 `/etc/shadow`
+
+##### /etc/passwd文件结构
+
+```sh
+$ sudo head -n 4 /etc/passwd
+root:x:0:0:root:/root:/bin/bash
+bin:x:1:1:bin:/bin:/sbin/nologin
+daemon:x:2:2:daemon:/sbin:/sbin/nologin
+adm:x:3:4:adm:/var/adm:/sbin/nologin
+```
+
+1. 帐号名称
+2. 密码。放到了`/etc/shadow`里
+3. UID
+
+![](images/image-20250205113533819.png)
+
+4. GID
+
+5. 使用者信息说明
+
+6. 主文件夹
+
+7. Shell
+
+   当使用者登陆系统后就会取得一个 Shell 来与系统的核心沟通以进行使用者的操作任务。
+
+   这里就是指定默认shell的，root默认是bash。
+
+   有一个 shell （`/sbin/nologin`）可以用来替代成让帐号无法取得 shell 环境的登陆动作！
+
+##### /etc/shadow文件结构
+
+```sh
+$ sudo head -n 4 /etc/shadow 
+root:$6$JYo1VoRdBOs7Pzzz$C6cbsiPXxu1dNyZEFJzzrRf72a07IBm3fWjni3yktzc55o9ZFbAhOXs7nExDXtrw.Q7Nt7XG4c9RIcxXq9M8r1:20112:0:99999:7:::
+bin:*:19347:0:99999:7:::
+daemon:*:19347:0:99999:7:::
+adm:*:19347:0:99999:7:::
+```
+
+1. 账号名称
+
+2. 密码
+
+   加密过的密码
+
+3. 最近更动密码的日期
+
+   这日期是以 1970 年 1 月 1 日作为 1 而累加的日期。
+
+   > ```sh
+   > echo $(($(date --date="2025/01/24" +%s)/86400 + 1))
+   > ```
+   >
+   > 2025/01/24为你想要计算的日期，86400 为每一天的秒数， %s 为1970/01/01以来的累积总秒数。由于 bash 仅支持整数，因此最终需要加上 1 补齐 1970/01/01 当天。
+
+4. 密码不可被更动的天数：（与第 3 字段相比）
+
+   这个帐号的密码在最近一次被更改后需要经过几天才可以再被变更！**如果是0的话，表示密码随时可以更动的意思**。这的限制是为了怕密码被某些人一改再改而设计的！如果设置为20天的话，那么当你设置了密码之后，20天之内都无法改变这个密码！
+
+5. 密码需要重新变更的天数：（与第 3 字段相比）
+
+   经常变更密码是个好习惯！为了强制要求使用者变更密码，这个字段可以指定在最近一次更改密码后， 在多少天数内需要再次的变更密码才行。**你必须要在这个天数内重新设置你的密码，否则这个帐号的密码将会“变为过期特性”**。 而如果像上面的 99999 （计算为 273 年） 的话，那就表示密码的变更没有强制性之意。
+
+6. 密码需要变更期限前的警告天数：（与第 5 字段相比）
+
+7. 密码过期后的帐号宽限时间（密码失效日）：（与第 5 字段相比）
+
+8. 帐号失效日期
+
+9. 保留
+
+
+
+#### 关于群组：有效与初始群组, groups, newgr
+
+##### /etc/group文件结构
+
+```sh
+$ sudo head -n 4 /etc/group
+root:x:0:
+bin:x:1:
+daemon:x:2:
+sys:x:3:
+```
+
+1. 群组名称
+
+2. 群组密码
+
+3. GID
+
+4. 此群组支持的帐号名称
+
+   多个账号以逗号分隔
+
+
+
+##### 有效群组（effective group）与初始群组（initial group）
+
+
+
+
+
+##### `groups`: 有效与支持群组的观察
+
+```sh
+$ groups
+andyron wheel docker
+```
+
+
+
+##### `newgrp`: 有效群组的切换
+
+
+
+##### `/etc/gshadow`
+
+
+
 
 
 ### 13.2 账号管理
 
+#### 1️⃣新增与删除用户：`useradd`、相关配置文件、`passwd`、`usermod`、`userdel`
 
-#### 新增与删除用户：useradd、相关配置文件、passwd、usermod、userdel
+##### `useradd`
 
-
-#### 用户功能
-
-
-#### 新增与删除用户组
-
-
-#### 账号管理实例
-
-
-#### 使用外部身份认证系统
-
-
-### 13.3 主机的详细权限规划：ACL的使用
-
-
-#### 什么是ACL与如何支持启动ACL
-
-
-#### ACL的设置技巧：getfacl、setfacl
+```sh
+[root@study ~]# useradd [-u UID] [-g 初始群组] [-G 次要群组] [-mM]\
+> [-c 说明栏] [-d 主文件夹绝对路径] [-s shell] 使用者帐号名
+选项与参数：
+-u ：后面接的是 UID ，是一组数字。直接指定一个特定的 UID 给这个帐号；
+-g ：后面接的那个群组名称就是我们上面提到的 initial group。该群组的 GID 会被放置到/etc/passwd的第四个字段内。
+-G ：后面接的群组名称则是这个帐号还可以加入的群组。这个选项与参数会修改 /etc/group 内的相关数据喔！
+-M ：强制！不要创建使用者主文件夹！（系统帐号默认值）
+-m ：强制！要创建使用者主文件夹！（一般帐号默认值）
+-c ：这个就是 /etc/passwd 的第五栏的说明内容啦～可以随便我们设置的啦～
+-d ：指定某个目录成为主文件夹，而不要使用默认值。务必使用绝对路径！
+-r ：创建一个系统的帐号，这个帐号的 UID 会有限制 （参考 /etc/login.defs）
+-s ：后面接一个 shell ，若没有指定则默认是 /bin/bash 的啦～
+-e ：后面接一个日期，格式为“YYYY-MM-DD”此项目可写入 shadow 第八字段，亦即帐号失效日的设置项目啰；
+-f ：后面接 shadow 的第七字段项目，指定密码是否会失效。0为立刻失效，-1为永远不失效（密码只会过期而强制于登陆时重新设置而已。）
+```
 
 
-### 13.4 用户身份切换
 
+##### useradd默认值
+
+![](images/image-20250205121220095.png)
+
+`/etc/default/useradd`
+
+GID 为 100 者即是 users 这个群组
+
+
+
+`/etc/login.defs `内容：
+
+![](images/image-20250205121558924.png)
+
+##### `passwd`
+
+![](images/image-20250205121720530.png)
+
+
+
+##### `chage`
+
+```sh
+[root@study ~]# chage [-ldEImMW] 帐号名
+选项与参数：
+-l ：列出该帐号的详细密码参数；
+-d ：后面接日期，修改 shadow 第三字段（最近一次更改密码的日期），格式 YYYY-MM-DD
+-E ：后面接日期，修改 shadow 第八字段（帐号失效日），格式 YYYY-MM-DD
+-I ：后面接天数，修改 shadow 第七字段（密码失效日期）
+-m ：后面接天数，修改 shadow 第四字段（密码最短保留天数）
+-M ：后面接天数，修改 shadow 第五字段（密码多久需要进行变更）
+-W ：后面接天数，修改 shadow 第六字段（密码过期前警告日期）
+```
+
+
+
+##### `usermod`
+
+```sh
+[root@study ~]# usermod [-cdegGlsuLU] username
+选项与参数：
+-c ：后面接帐号的说明，即 /etc/passwd 第五栏的说明栏，可以加入一些帐号的说明。
+-d ：后面接帐号的主文件夹，即修改 /etc/passwd 的第六栏；
+-e ：后面接日期，格式是 YYYY-MM-DD 也就是在 /etc/shadow 内的第八个字段数据啦！
+-f ：后面接天数，为 shadow 的第七字段。
+-g ：后面接初始群组，修改 /etc/passwd 的第四个字段，亦即是 GID 的字段！
+-G ：后面接次要群组，修改这个使用者能够支持的群组，修改的是 /etc/group 啰～
+-a ：与 -G 合用，可“增加次要群组的支持”而非“设置”喔！
+-l ：后面接帐号名称。亦即是修改帐号名称， /etc/passwd 的第一栏！
+-s ：后面接 Shell 的实际文件，例如 /bin/bash 或 /bin/csh 等等。
+-u ：后面接 UID 数字啦！即 /etc/passwd 第三栏的数据；
+-L ：暂时将使用者的密码冻结，让他无法登陆。其实仅改 /etc/shadow 的密码栏。
+-U ：将 /etc/shadow 密码栏的 ! 拿掉，解冻啦！
+```
+
+
+
+##### `userdel`
+
+目的在删除使用者的相关数据，而使用者的数据有：
+
+- 使用者帐号/密码相关参数：/etc/passwd, /etc/shadow
+
+- 使用者群组相关参数：/etc/group, /etc/gshadow
+
+- 使用者个人文件数据： /home/username, /var/spool/mail/username..
+
+```sh
+[root@study ~]# userdel [-r] username
+选项与参数：
+-r ：连同使用者的主文件夹也一起删除
+```
+
+
+
+
+
+#### 2️⃣用户功能
+
+useradd/usermod/userdel 都是系统管理员所能够使用的指令。
+
+普通用户可以用来查看和变更数据的指令：
+
+##### `id`
+
+
+
+##### `finger`
+
+finger指令有点危险，所以新的版本中已经默认不安装这个软件。
+
+
+
+##### `chfn`
+
+change finger
+
+
+
+##### `chsh`
+
+change shell 
+
+
+
+
+#### 3️⃣新增与删除用户组
+
+群组的内容其实很简单，都是`/etc/group`, `/etc/gshadow`这两个文件的新增、修改与移除而已。
+
+`groupadd`
+
+`groupmod`
+
+`groupdel`
+
+`gpasswd`
+
+
+
+#### 4️⃣账号管理实例
+
+
+
+
+
+#### 5️⃣使用外部身份认证系统
+
+
+
+### 13.3 主机的详细权限规划：ACL的使用 🔖
+
+传统的权限仅有三种身份（owner, group, others） 搭配三种权限 （r,w,x） 而已，并没有办法单纯的**针对某一个使用者或某一个群组来设置特定的权限**需求，此时就需要ACL机制了。
+
+#### 13.3.1 什么是ACL与如何支持启动ACL
+
+ACL 是 Access Control List 的缩写，主要的目的是在提供传统的 owner,group,others 的read,write,execute 权限之外的==细部权限设置==。
+
+
+
+#### 13.3.2 ACL的设置技巧：`getfacl`、`setfacl`
+
+getfacl：取得某个文件/目录的 ACL 设置项目；
+
+setfacl：设置某个目录/文件的 ACL 规范。
+
+
+
+```sh
+[root@study ~]# setfacl [-bkRd] [{-m|-x} acl参数] 目标文件名
+选项与参数：
+-m ：设置后续的 acl 参数给文件使用，不可与 -x 合用；
+-x ：删除后续的 acl 参数，不可与 -m 合用；
+-b ：移除“所有的” ACL 设置参数；
+-k ：移除“默认的” ACL 参数，关于所谓的“默认”参数于后续范例中介绍；
+-R ：递回设置 acl ，亦即包括次目录都会被设置起来；
+-d ：设置“默认 acl 参数”的意思！只对目录有效，在该目录新建的数据会引用此默认值
+```
+
+
+
+
+
+```sh
+getfacl filename
+```
+
+getfacl 的选项几乎与 setfacl 相同
+
+
+
+
+
+### 13.4 用户身份切换 🔖
 
 #### su
+
 
 
 #### sudo
 
 
-### 13.5 用户的特殊shell与PAM模块
 
 
-#### 特殊的shell，/sbin/nologin
+
+### 13.5 用户的特殊shell与PAM模块 🔖
+
+> 如果我今天想要创建的， 是一个“仅能使用 mail server 相关邮件服务的帐号，而该帐号并不能登陆 Linux 主机”呢？
+>
+> 如果不能给予该帐号一个密码，那么该帐号就无法使用系统的各项资源，当然也包括 mail 的资源， 而如果给予一个密码，那么该帐号就可能可以登陆 Linux主机啊！
+
+#### 1️⃣特殊的shell，/sbin/nologin
+
+系统帐号是不需要登陆的!
+
+我们所谓的“无法登陆”指的仅是：“这个使用者**无法使用bash或其他shell来登陆系统**”而已， 并不是说这个帐号就无法使用其他的系统资源！ 
+
+举例来说，各个系统帐号，打印工作由 lp 这个帐号在管理，WWW 服务由 apache 这个帐号在管理， 他们都可以进行系统程序的工作，但是“就是无法登陆主机取得互动的 shell”而已啦！
 
 
-#### PAM模块简介
+
+#### 2️⃣PAM模块简介
+
+PAM （Pluggable Authentication Modules, 嵌入式模块）
+
+PAM 可以说是一套应用程序接口 （Application Programming Interface, API），他提供了一连串的验证机制，只要使用者将验证阶段的需求告知 PAM 后， PAM 就能够回报使用者验证的结果 （成功或失败）。
+
+![](images/image-20250205124255294.png)
 
 
-#### PAM模块设置语法
+#### 3️⃣PAM模块设置语法
+
+PAM借由一个与程序相同文件名的配置文件来进行一连串的认证分析需求。
+
+以 passwd 这个指令的调用 PAM 来说明好了。 当你执行 passwd 后，这支程序调用 PAM 的流程是：
+
+1. 使用者开始执行 /usr/bin/passwd 这支程序，并输入密码；
+
+2. passwd 调用 PAM 模块进行验证；
+
+3. PAM 模块会到 /etc/pam.d/ 找寻与程序 （passwd） 同名的配置文件；
+
+4. 依据 /etc/pam.d/passwd 内的设置，引用相关的 PAM 模块逐步进行验证分析；
+
+5. 将验证结果 （成功、失败以及其他讯息） 回传给 passwd 这支程序；
+
+6. passwd 这支程序会根据 PAM 回传的结果决定下一个动作 （重新输入新密码或者通过验证！）
 
 
-#### 常用模块简介
+
+```sh
+[root@study ~]# cat /etc/pam.d/passwd
+#%PAM-1.0 <==PAM版本的说明而已！
+auth 			include 		system-auth <==每一行都是一个验证的过程
+account 	include 		system-auth
+password 	substack 		system-auth
+-password optional 		pam_gnome_keyring.so use_authtok
+password 	substack 		postlogin
+验证类别 	  控制标准 		 PAM 模块与该模块的参数
+```
+
+第一个字段：验证类别 （Type）
 
 
-#### 其他相关文件
+
+第二个字段：验证的控制旗标 （control flag）
 
 
-### 13.6 Linux主机上的用户信息传递
 
 
-#### 查询用户：w、who、last、lastlog
 
 
-#### 用户对谈：write、mesg、wall
+
+#### 4️⃣常用模块简介
 
 
-#### 用户邮箱：mail
+
+看看登陆所需要的PAM流程:
+
+![](images/image-20250205125038812.png)
+
+
+
+详细的模块情报:
+
+- `/etc/pam.d/*`：每个程序个别的 PAM 配置文件；
+
+- `/lib64/security/*`：PAM 模块文件的实际放置目录；
+
+- `/etc/security/*`：其他 PAM 环境的配置文件；
+
+- `/usr/share/doc/pam-*/`：详细的 PAM 说明文档。
+
+
+
+
+
+#### 5️⃣其他相关文件
+
+`/etc/security/`
+
+##### limits.conf
+
+![](images/image-20250205131324341.png)
+
+##### /var/log/secure, /var/log/messages
+
+
+
+
+
+
+
+
+
+### 13.6 Linux主机上的使用者信息传递
+
+#### 查询使用者：w、who、last、lastlog
+
+
+
+#### 使用对谈：write、mesg、wall
+
+
+
+#### 使用者邮箱：mail
+
+
 
 
 ### 13.7 CentOS 7环境下大量创建账号的方法
 
-
 #### 一些账号相关的检查工具
+
+`pwck`
+
+`pwconv`
+
+`pwunconv`
+
+`chpasswd`
+
+
 
 #### 大量创建账号模板（适用passwd --stdin选项）
 
