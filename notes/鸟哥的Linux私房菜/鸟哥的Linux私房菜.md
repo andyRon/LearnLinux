@@ -4320,64 +4320,300 @@ j ：工作的格式 （jobs format）
 
 ### 17.1 什么是daemon与服务（service）
 
+系统为了某些功能必须要提供一些服务 （不论是系统本身还是网络方面），这个服务就称为 service 。 
 
-#### 早期System V的init管理操作中daemon的主要分类
+但是 service 的提供总是需要程序的运行吧！否则如何执行呢？所以达成这个 service 的程序我们就称呼他为 daemon 啰！ 
+
+举例来说，达成循环型例行性工作调度服务 （service） 的程序为 crond 这个 daemon 啦！
+
+> 事实上，可以将这两者视为相同！因为达成某个服务是需要一支 daemon 在背景中运行， 没有这支 daemon 就不会有 service ！
+>
+> 这些服务的名称被创建之后，被挂上 Linux 使用时，通常在服务的名称之后会加上一个d。 
+
+#### 17.1.1 早期System V的init管理操作中daemon的主要分类
 
 
-#### systemd使用的unit分类
+
+#### 17.1.2 systemd使用的unit分类
+
+CentOS 7.x 以后
+
+##### systemd 的配置文件放置目录
+
+systemd 将过去所谓的 daemon 执行脚本通通称为一个**服务单位 （unit）**，而每种服务单位依据**功能**来区分时，就分类为不同的类型 （type）。 基本的类型有包括**系统服务、数据监听与交换的插槽档服务 （socket）、储存系统状态的快照类型、提供不同类似执行等级分类的操作环境 （target）** 等等。
+
+配置文件位置：
+
+- `/usr/lib/systemd/system/`：每个服务最主要的启动脚本设置，有点类似以前的 /etc/init.d 下面的文件；
+
+- `/run/systemd/system/`：系统执行过程中所产生的服务脚本，这些脚本的优先序要比/usr/lib/systemd/system/ 高！
+
+- `/etc/systemd/system/`：管理员依据主机系统的需求所创建的执行脚本，其实这个目录有点像以前/etc/rc.d/rc5.d/Sxx 之类的功能！执行优先序又比 /run/systemd/system/ 高喔！
+
+
+
+##### systemd 的 unit 类型分类说明
+
+```sh
+ll /usr/lib/systemd/system/
+
+ll /usr/lib/systemd/system/ | grep -E '（vsftpd|multi|cron）'
+```
+
+以扩展名来区分类型：
+
+| 扩展名            | 主要服务功能                                                 |
+| ----------------- | ------------------------------------------------------------ |
+| .service          | 一般服务类型 （service unit）：主要是系统服务，包括服务器本身所需要的本机服务以及网络服务都是！比较经常被使用到的服务大多是这种类型！ 所以，这也是最常见的类型了！ |
+| .socket           | 内部程序数据交换的插槽服务 （socket unit）：主要是 IPC （Inter-process communication） 的传输讯息插槽档 （socket file） 功能。 这种类型的服务通常在监控讯息传递的插槽档，当有通过此插槽档传递讯息来说要链接服务时，就依据当时的状态将该用户的要求传送到对应的 daemon， 若 daemon 尚未启动，则启动该 daemon 后再传送用户的要求。<br />使用 socket 类型的服务一般是比较不会被用到的服务，因此在开机时通常会稍微延迟启动的时间 （因为比较没有这么常用嘛！）。一般用于本机服务比较多，例如我们的图形界面很多的软件都是通过 socket 来进行本机程序数据交换的行为。 （这与早期的xinetd 这个 super daemon 有部份的相似喔！） |
+| .target           | 执行环境类型 （target unit）：其实是一群 unit 的集合，例如上面表格中谈到的 multi-user.target 其实就是一堆服务的集合～也就是说， 选择执行 multi-user.target 就是执行一堆其他 .service 或/及 .socket 之类的服务就是了！ |
+| .mount .automount | 文件系统挂载相关的服务 （automount unit / mount unit）：例如来自网络的自动挂载、NFS 文件系统挂载等与文件系统相关性较高的程序管理。 |
+| .path             | 侦测特定文件或目录类型 （path unit）：某些服务需要侦测某些特定的目录来提供伫列服务，例如最常见的打印服务，就是通过侦测打印伫列目录来启动打印功能！ 这时就得要 .path 的服务类型支持了！ |
+| .timer            | 循环执行的服务 （timer unit）：这个东西有点类似 anacrontab 喔！不过是由 systemd 主动提供的，比 anacrontab 更加有弹性！ |
+
+
+
+
 
 
 ### 17.2 通过systemctl管理服务
 
-
 #### 通过systemctl管理单一服务（service unit）的启动/开机启动与查看状态
+
+```sh
+[root@study ~]# systemctl [command] [unit]
+command 主要有：
+start ：立刻启动后面接的 unit
+stop ：立刻关闭后面接的 unit
+restart ：立刻关闭后启动后面接的 unit，亦即执行 stop 再 start 的意思
+reload ：不关闭后面接的 unit 的情况下，重新载入配置文件，让设置生效
+enable ：设置下次开机时，后面接的 unit 会被启动
+disable ：设置下次开机时，后面接的 unit 不会被启动
+status ：目前后面接的这个 unit 的状态，会列出有没有正在执行、开机默认执行否、登录等信息等！
+is-active ：目前有没有正在运行中
+is-enable ：开机时有没有默认要启用这个 unit
+```
+
+
+
+```sh
+$ systemctl status atd.service
+atd.service - Job spooling tools
+	Loaded: loaded （/usr/lib/systemd/system/atd.service; enabled）
+	Active: active （running） since Mon 2015-08-10 19:17:09 CST; 5h 42min ago
+Main PID: 1350 （atd）
+	CGroup: /system.slice/atd.service
+					└─1350 /usr/sbin/atd -f
+```
+
+- Loaded行在说明开机的时候这个 unit 会不会启动，enabled 为开机启动，disabled 开机不会启动
+
+- Active行说明现在这个 unit 的状态是正在执行 （running） 或没有执行 （dead）
+
+```sh
+systemctl stop atd.service
+```
+
+
+
+🔖
+
+
+
+```sh
+systemctl status chronyd.service
+systemctl stop chronyd.service
+systemctl disable chronyd.service
+```
+
+##### 强迫服务注销 （mask） 
+
+
+
+```sh
+systemctl stop cups.service
+systemctl mask cups.service
+systemctl unmask cups.service
+```
+
 
 
 #### 通过systemctl查看系统上所有的服务
 
+```sh
+[root@study ~]# systemctl [command] [--type=TYPE] [--all]
+command:
+	list-units ：依据 unit 列出目前有启动的 unit。若加上 --all 才会列出没启动的。
+	list-unit-files ：依据 /usr/lib/systemd/system/ 内的文件，将所有文件列表说明。
+--type=TYPE：就是之前提到的 unit type，主要有 service, socket, target 等
+```
+
+
+
+```sh
+范例一：列出系统上面有启动的 unit
+[root@study ~]# systemctl
+
+范例二：列出所有已经安装的 unit 有哪些？
+[root@study ~]# systemctl list-unit-files
+
+
+systemctl list-units --type=service --all
+范例一：查询系统上是否有以 cpu 为名的服务？
+[root@study ~]# systemctl list-units --type=service --all | grep cpu
+```
+
+
 
 #### 通过systemctl管理不同的操作环境（target unit）
 
+```sh
+systemctl list-units --type=target --all
+```
+
+
+
+```sh
+systemctl get-default
+
+systemctl set-default multi-user.target
+
+范例二：在不重新开机的情况下，将目前的操作环境改为纯文本模式，关掉图形界面
+[root@study ~]# systemctl isolate multi-user.target
+范例三：若需要重新取得图形界面呢？
+[root@study ~]# systemctl isolate graphical.target
+```
+
+
+
+```sh
+[root@study ~]# systemctl poweroff 系统关机
+[root@study ~]# systemctl reboot 重新开机
+[root@study ~]# systemctl suspend 进入暂停模式
+[root@study ~]# systemctl hibernate 进入休眠模式
+[root@study ~]# systemctl rescue 强制进入救援模式
+[root@study ~]# systemctl emergency 强制进入紧急救援模式
+```
+
+
 
 #### 通过systemctl分析各服务之间的依赖性
+
+```sh
+[root@study ~]# systemctl list-dependencies [unit] [--reverse]
+选项与参数：
+--reverse ：反向追踪谁使用这个 unit 的意思！
+```
+
+
+
+```sh
+systemctl list-dependencies
+
+systemctl list-dependencies --reverse
+
+systemctl list-dependencies graphical.target
+```
+
+
+
 
 
 #### 与systemd的daemon运行过程相关的目录简介
 
 
+
+
+
 #### 关闭网络服务
+
+观察网络端口：
+
+```
+netstat -tlunp
+```
+
+
+
+
+
 
 
 ### 17.3 systemctl针对service类型的配置文件
 
 
+
 #### systemctl配置文件相关目录简介
 
+```sh
+[root@study ~]# cat /usr/lib/systemd/system/sshd.service
+[Unit] 						# 这个项目与此 unit 的解释、执行服务相依性有关
+Description=OpenSSH server daemon
+After=network.target sshd-keygen.service
+Wants=sshd-keygen.service
 
-#### systemctl配置文件的设置项目简介
+[Service] 				# 这个项目与实际执行的指令参数有关
+EnvironmentFile=/etc/sysconfig/sshd
+ExecStart=/usr/sbin/sshd -D $OPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=42s
+
+[Install] 				# 这个项目说明此 unit 要挂载哪个 target 下面
+WantedBy=multi-user.target
+```
+
+- [Unit]： unit 本身的说明，以及与其他相依 daemon 的设置，包括在什么服务之后才启动此 unit 之类的设置值；
+
+- [Service], [Socket], [Timer], [Mount], [Path]..：不同的 unit type 就得要使用相对应的设置项目。我们拿的是 sshd.service 来当范本，所以这边就使用 [Service] 来设置。 这个项目内主要在规范服务启动的脚本、环境配置文件文件名、重新启动的方式等等。
+
+- [Install]：这个项目就是将此 unit 安装到哪个 target 里面去！
+
 
 
 #### 两个vsftpd运行的实例
 
 
+
+
+
 #### 多重的重复设置方式：以getty为例
+
+```sh
+cat /usr/lib/systemd/system/getty@.service 
+```
+
+
+
 
 
 #### 自己的服务自己做
 
 
+
+
+
 ### 17.4 systemctl针对timer的配置文件
+
+systemd.timer 的优势
+
+
+
+
+
+
 
 
 ### 17.5 CentOS 7.x默认启动的服务概要
 
+![](images/image-20250205180825479.png)
 
 
 
 
 
-
-
+![](images/image-20250206113851216.png)
 
 
 
@@ -4435,7 +4671,7 @@ pstree
 
 ## 18 认识、分析登录文件
 
-登录文件可以记录系统在什么时间、哪个主机、哪个服务、出现了什么讯息等信息， 这些信息也包括用户识别数据、系统故障排除须知等信息。
+登录文件可以记录系统在**什么时间、哪个主机、哪个服务、出现了什么讯息**等信息， 这些信息也包括**用户识别数据、系统故障排除须知**等信息。
 
 ### 18.1 什么是登录文件
 
@@ -4443,7 +4679,9 @@ pstree
 
 “**详细而确实的分析以及备份系统的登录文件**”是一个系统管理员应该要进行的任务之一。
 
-#### 登录文件的重要性
+#### 18.1.1 CentOS 7登录文件简易说明
+
+##### 登录文件的重要性
 
 - 解决系统方面的错误
 - 解决网络服务的问题
@@ -4451,7 +4689,7 @@ pstree
 
 > 通过 ①察看屏幕上面的错误信息与②登录文件的错误信息，几乎可以解决大部分的 Linux 问题！
 
-#### Linux常见的登录文件
+##### Linux常见的登录文件
 
 登录文件通常仅有root能够读取。`/var/log/`
 
@@ -4466,7 +4704,7 @@ pstree
 8. /var/log/wtmp, /var/log/faillog：`last`
 9. `/var/log/httpd/*`, `/var/log/news/*`, `/var/log/samba/*`：不同的网路服务都会有自己的登录文件记录其产生的各种信息。
 
-#### 登录文件所需相关服务 （daemon） 与程序
+##### 登录文件所需相关服务 （daemon） 与程序
 
 登录文件产生的两种方式：
 
@@ -4481,19 +4719,23 @@ logrotate：主要在进行登录文件的轮替功能。
 
 
 
-#### journalctl
+##### journalctl
+
+CentOS 7.x 使用 systemd 提供的 journalctl 日志管理
 
 
 
-#### 登录文件的一般格式
+#### 18.1.2 登录文件的一般格式
 
-事件发生的日期与时间；
+系统产生的信息记录每条都有几个重要的数据：
 
-发生此事件的主机名称；
+- 事件发生的日期与时间；
 
-启动此事件的服务名称 （如 systemd, CROND 等） 或指令与函数名称 （如 su, login..）；
+- 发生此事件的主机名称；
 
-该讯息的实际数据内容。
+- 启动此事件的服务名称 （如 systemd, CROND 等） 或指令与函数名称 （如 su, login..）；
+
+- 该讯息的实际数据内容。
 
 
 
@@ -4507,27 +4749,63 @@ logrotate:主要在迚行登录文件的轮替功能。
 
 
 
-### 18.2 rsyslog.service ：记录登录文件的服务
+### 18.2 rsyslog.service：记录登录文件的服务
 
+Linux的登录文件主要是由 rsyslog.service负责。
 
-
-#### rsyslog.service 的配置文件：/etc/rsyslog.conf
+#### 18.2.1 rsyslog.service的配置文件：/etc/rsyslog.conf
 
 ##### 服务名称
 
+syslogd 主要还是通过 Linux 核心提供的 syslog 相关规范来设置数据的分类的，Linux 的 syslog 本身有规范一些服务讯息， 你可以通过这些服务来储存系统的讯息。Linux 核心的 syslog 认识的服务类型主要有下面这些： (`man 3 syslog`， syslog.h)
+
+![](images/image-20250206115256166.png)
+
+
+
 ##### 信息等级
 
+syslog.h
+
+![](images/image-20250206115400347.png)
+
+
+
 ##### 信息记录的文件名或设备或主机
+
+
 
 ##### 服务、daemon 与函数名称
 
 
 
-#### 登录文件的安全性设置
+##### CentOS 7.x 默认的 rsyslog.conf 内容
+
+![](images/image-20250206115631795.png)
+
+- `#kern.*`：只要是核心产生的讯息，全部都送到 console（终端机） 去。console 通常是由外部设备连接到系统而来， 举例来说，很多封闭型主机 （没有键盘、屏幕的系统） 可以通过连接 RS232 连接口将讯息传输到外部的系统中， 例如以笔记本电脑连接到封闭主机的 RS232 插口。这个项目通常应该是用在系统出现严重问题而无法使用默认的屏幕观察系统时， 可以通过这个项目来连接取得核心的讯息。
+- `*.info;mail.none;authpriv.none;cron.none`：由于 mail, authpriv, cron 等类别产生的讯息较多， 且已经写入下面的数个文件中，因此在 /var/log/messages 里面就不记录这些项目。除此之外的其他讯息都写入/var/log/messages 中。这也是为啥我们说这个 messages 文件很重要的缘故！
+- `authpriv.*`：认证方面的讯息均写入 /var/log/secure 文件；
+- `mail.*`：邮件方面的讯息则均写入 /var/log/maillog 文件；
+- `cron.*`：例行性工作调度均写入 /var/log/cron 文件；
+- `*.emerg`：当产生最严重的错误等级时，将该等级的讯息以 wall 的方式广播给所有在系统登陆的帐号得知， 要这么做的原因是希望在线的使用者能够赶紧通知系统管理员来处理这么可怕的错误问题。
+- uucp,news.crit：uucp 是早期 Unix-like 系统进行数据传递的通讯协定，后来常用在新闻群组的用途中。
+  news 则是新闻群组。当新闻群组方面的信息有严重错误时就写入 /var/log/spooler 文件中；
+- `local7.*`：将本机开机时应该显示到屏幕的讯息写入到 /var/log/boot.log 文件中；
 
 
 
-#### 登录文件服务器的设置
+##### 自行增加登录文件文件功能
+
+
+
+
+
+#### 18.2.2 登录文件的安全性设置
+
+
+
+#### 18.2.3 登录文件服务器的设置
 
 
 
@@ -4553,7 +4831,25 @@ logrotate:主要在迚行登录文件的轮替功能。
 
 ### 18.4 systemd-journald.service 简介
 
+
+
 #### 使用 journalctl 观察登录信息
+
+```sh
+[root@study ~]# journalctl [-nrpf] [--since TIME] [--until TIME] _optional
+选项与参数：
+默认会秀出全部的 log 内容，从旧的输出到最新的讯息
+-n ：秀出最近的几行的意思～找最新的信息相当有用
+-r ：反向输出，从最新的输出到最旧的数据
+-p ：秀出后面所接的讯息重要性排序！请参考前一小节的 rsyslogd 信息
+-f ：类似 tail -f 的功能，持续显示 journal 日志的内容（实时监测时相当有帮助！）
+--since --until：设置开始与结束的时间，让在该期间的数据输出而已
+_SYSTEMD_UNIT=unit.service ：只输出 unit.service 的信息而已
+_COMM=bash ：只输出与 bash 有关的信息
+_PID=pid ：只输出 PID 号码的信息
+_UID=uid ：只输出 UID 为 uid 的信息
+SYSLOG_FACILITY=[0-23] ：使用 syslog.h 规范的服务相对序号来调用出正确的数据！
+```
 
 
 
@@ -4561,9 +4857,21 @@ logrotate:主要在迚行登录文件的轮替功能。
 
 
 
-### 18.5 分析登录档
+#### 保存 journal 的方式
+
+
+
+
+
+### 18.5 分析登录文件
 
 #### `logwatch`
+
+
+
+#### 自己写登录文件分析工具
+
+
 
 
 
@@ -4571,41 +4879,136 @@ logrotate:主要在迚行登录文件的轮替功能。
 
 ### 19.1 Linux的启动流程分析
 
+#### 19.1.1 启动流程一览
 
-#### 启动流程一览
-
-
-#### BIOS、boot loader与kernel加载
-
-
-#### 第 一个程序systemd及使用default.target进入启动程序分析
-
-
-#### systemd执行sysinit.target初始化系统、basic.target准备系统
-
-
-#### systemd启动multi-user.target下的服务
+1. 载入 BIOS 的硬件信息与进行自我测试，并依据设置取得第一个可开机的设备；
+2. 读取并执行第一个开机设备内 MBR 的 boot Loader （亦即是 grub2, spfdisk 等程序）；
+3. 依据 boot loader 的设置载入 Kernel ，Kernel 会开始侦测硬件与载入驱动程序；
+2. 在硬件驱动成功后，Kernel 会主动调用 systemd 程序，并以 default.target 流程开机；
+- systemd 执行 sysinit.target 初始化系统及 basic.target 准备操作系统；
+- systemd 启动 multi-user.target 下的本机与服务器服务；
+- systemd 执行 multi-user.target 下的 /etc/rc.d/rc.local 文件；
+- systemd 执行 multi-user.target 下的 getty.target 及登陆服务；
+- systemd 执行 graphical 需要的服务
 
 
-#### systemd启动graphical.target下面的服务
 
 
-#### 启动过程会用到的主要配置文件
+
+#### 19.1.2 BIOS、boot loader与kernel加载
+
+##### BIOS, 开机自我测试与 MBR/GPT
+
+
+
+##### Boot Loader的功能
+
+
+
+##### 载入核心侦测硬件与 initramfs 的功能
+
+
+
+
+
+#### 19.1.3 第一个程序systemd及使用default.target进入启动程序分析
+
+
+
+
+
+#### 19.1.4 systemd执行sysinit.target初始化系统、basic.target准备系统
+
+
+
+
+
+#### 19.1.5 systemd启动multi-user.target下的服务
+
+
+
+
+
+#### 19.1.6 systemd启动graphical.target下面的服务
+
+
+
+
+
+#### 19.1.7 启动过程会用到的主要配置文件
+
+`/etc/modules-load.d/*.conf`：单纯要核心载入模块的位置；
+
+`/etc/modprobe.d/*.conf`：可以加上模块参数的位置
+
+
+
+`/etc/sysconfig/*`
+
 
 
 ### 19.2 内核与内核模块
 
-
 #### 内核模块与依赖性
+
+核心模块的放置处是在 `/lib/modules/$(uname -r)/kernel` 
+
+```
+arch ：与硬件平台有关的项目，例如 CPU 的等级等等；
+crypto ：核心所支持的加密的技术，例如 md5 或者是 des 等等；
+drivers ：一些硬件的驱动程序，例如显卡、网卡、PCI 相关硬件等等；
+fs ：核心所支持的 filesystems ，例如 vfat, reiserfs, nfs 等等；
+lib ：一些函数库；
+net ：与网络有关的各项协定数据，还有防火墙模块 （net/ipv4/netfilter/*） 等等；
+sound ：与音效有关的各项模块；
+```
+
+
+
+```sh
+[root@study ~]# depmod [-Ane]
+选项与参数：
+-A ：不加任何参数时， depmod 会主动的去分析目前核心的模块，并且重新写入/lib/modules/$（uname -r）/modules.dep 当中。若加入 -A 参数时，则 depmod会去搜寻比 modules.dep 内还要新的模块，如果真找到新模块，才会更新。
+-n ：不写入 modules.dep ，而是将结果输出到屏幕上（standard out）；
+-e ：显示出目前已载入的不可执行的模块名称
+```
+
 
 
 #### 查看内核模块
 
+`lsmod`
 
-#### 内核模块的加载与删除
+```sh
+[root@study ~]# modinfo [-adln] [module_name|filename]
+选项与参数：
+-a ：仅列出作者名称；
+-d ：仅列出该 modules 的说明 （description）；
+-l ：仅列出授权 （license）；
+-n ：仅列出该模块的详细路径。
+```
 
 
-#### 内核模块的额外参数设置：/etc/modprobe.d/*conf
+
+
+
+#### 核心模块的载入与移除
+
+```sh
+insmod [/full/path/module_name] [parameters]
+
+rmmod [-fw] module_name
+
+modprobe [-cfr] module_name
+```
+
+
+
+
+
+#### 内核模块的额外参数设置：`/etc/modprobe.d/*conf`
+
+
 
 
 ### 19.3 Boot Loader:Grub2
@@ -4614,34 +5017,45 @@ logrotate:主要在迚行登录文件的轮替功能。
 #### boot loader的两个stage
 
 
+
 #### grub2的配置文件/boot/grub2/grub.cfg初探
+
 
 
 #### grub2配置文件维护/etc/default/grub与/etc/grub.d
 
 
+
 #### initramfs的重要性与建立新initramfs文件
+
 
 
 #### 测试与安装grub2
 
 
+
 #### 启动前的额外功能修改
+
 
 
 #### 关于启动画面与终端画面的图形显示方式
 
 
+
 #### 为个别选项设置密码
 
 
-### 19.4 启动过程的问题解决
+
+### 19.4 开机过程的问题解决
 
 
 #### 忘记root密码的解决之道
 
 
-#### 直接启动就以root执行bash的方法
+
+#### 直接开机就以root执行bash的方法
+
+
 
 #### 因文件系统错误而无法启动
 
