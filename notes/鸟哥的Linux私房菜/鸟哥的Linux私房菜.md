@@ -5063,102 +5063,276 @@ modprobe [-cfr] module_name
 
 
 
-## 20 网络设置与备份策略
+## 20 基础系统设置与备份策略
 
 ### 20.1 系统基本设置
 
-
-#### 网络设置（手动设置与DHCP自动获取）
-
-
-#### 日期与时间设置
+#### 20.1.1 网络设置（手动设置与DHCP自动获取）
 
 
-#### 语系设置
+
+##### 手动设置 IP 网络参数
+
+```sh
+nmcli connection show [网卡代号]
+```
 
 
-#### 防火墙简易设置
+
+```sh
+$ nmcli connection show
+NAME             UUID                                  TYPE      DEVICE          
+enp0s5           cbd2a92f-a359-3ae5-b1f2-28528bca4f66  ethernet  enp0s5          
+br-a14d1aefc829  a9bcfc15-1cae-430b-9bc3-d60ad5570900  bridge    br-a14d1aefc829 
+docker0          66d6e90f-b7ff-4805-af91-32fa4bce8fc5  bridge    docker0         
+lo               e0d52f05-e81d-4ffe-ad69-f15d9167d08a  loopback  lo  
+
+
+$ nmcli connection show enp0s5
+....
+
+
+$ nmcli connection modify enp0s5 \
+....
+
+```
+
+
+
+##### 自动取得 IP 参数
+
+
+
+##### 修改主机名称
+
+```sh
+hostnamectl [set-hostname 你的主机名]
+```
+
+
+
+```sh
+$ hostnamectl 
+ Static hostname: CentOS9-2
+       Icon name: computer-vm
+         Chassis: vm 🖴
+      Machine ID: d4fa7e12c95946cbbfcfae39f8f5b2b3
+         Boot ID: 94904d02553d4f9f91b2becdd250286c
+  Virtualization: parallels
+Operating System: CentOS Stream 9                 
+     CPE OS Name: cpe:/o:centos:centos:9
+          Kernel: Linux 5.14.0-252.el9.aarch64
+    Architecture: arm64
+ Hardware Vendor: Parallels International GmbH.
+  Hardware Model: Parallels ARM Virtual Machine
+Firmware Version: 18.0.1 (53056)
+```
+
+
+
+#### 20.1.2 日期与时间设置
+
+##### 时区的显示与设置
+
+```sh
+[root@study ~]# timedatectl [commamd]
+选项与参数：
+list-timezones ：列出系统上所有支持的时区名称
+set-timezone ：设置时区位置
+set-time ：设置时间
+set-ntp ：设置网络校时系统
+```
+
+##### 时间的调整
+
+```sh
+#  将时间调整到正确的时间点上！
+[root@study ~]# timedatectl set-time "2024-09-01 12:02"
+```
+
+
+
+##### 用 ntpdate 手动网络校时
+
+
+
+
+
+#### 20.1.3 语系设置
+
+语系配置文件：`/etc/locale.conf`
+
+```sh
+$ localectl
+System Locale: LANG=zh_CN.UTF-8
+    VC Keymap: cn
+   X11 Layout: cn
+   
+$ locale					# 当前语系的数据
+LANG=zh_CN.UTF-8
+LC_CTYPE="zh_CN.UTF-8"
+LC_NUMERIC="zh_CN.UTF-8"
+LC_TIME="zh_CN.UTF-8"
+LC_COLLATE="zh_CN.UTF-8"
+LC_MONETARY="zh_CN.UTF-8"
+LC_MESSAGES="zh_CN.UTF-8"
+LC_PAPER="zh_CN.UTF-8"
+LC_NAME="zh_CN.UTF-8"
+LC_ADDRESS="zh_CN.UTF-8"
+LC_TELEPHONE="zh_CN.UTF-8"
+LC_MEASUREMENT="zh_CN.UTF-8"
+LC_IDENTIFICATION="zh_CN.UTF-8"
+LC_ALL=   
+```
+
+
+
+#### 20.1.4 防火墙简易设置
+
+
 
 
 ### 20.2 服务器硬件数据的收集
 
-
 #### 使用dmidecode查看硬件设备
+
+```sh
+[root@study ~]# dmidecode -t type
+选项与参数：
+详细的 type 项目请 man dmidecode 查询更多的数据，这里仅列出比较常用的项目：
+1 ：详细的系统数据，含主板的型号与硬件的基础数据等
+4 ：CPU 的相关数据，包括倍频、外频、核心数、核心绪数等
+9 ：系统的相关插槽格式，包括 PCI, PCI-E 等等的插槽规格说明
+17：每一个内存插槽的规格，若内有内存，则列出该内存的容量与型号
+```
+
 
 
 #### 硬件资源的收集与分析
 
 
+
+```sh
+gdisk
+dmesg
+vmstat
+lspci
+lsusb
+iostat
+```
+
+
+
+
+
 #### 了解磁盘的健康状态
+
+```sh
+sudo smartctl -a /dev/sda
+```
+
+
+
+
 
 
 ### 20.3 备份要点
 
+#### 20.3.1 备份数据的考虑
 
-#### 备份数据的考虑
+##### 备份因素考虑
+
+- 备份哪些文件
+- 选择什么备份的媒介
+- 考虑备份的方式
+- 备份的频率
+- 备份使用的工具
 
 
-#### 哪些Linux数据具有备份的意义
+
+#### 20.3.2 哪些Linux数据具有备份的意义
+
+##### 操作系统本身需要备份的文件
 
 
-#### 备份用存储媒介的选择
+
+##### 网络服务的数据库方面
+
+
+
+##### 推荐需要备份的目录
+
+
+
+##### 不需要备份的目录
+
+- /dev ：这个随便你要不要备份
+
+- /proc, /sys, /run：这个真的不需要备份啦！
+
+- /mnt, /media：如果你没有在这个目录内放置你自己系统的东西，也不需要备份
+
+- /tmp 
+
+
+
+#### 20.3.3 备份用存储媒介的选择
+
+
+
+
 
 
 ### 20.4 备份的种类、频率与工具的选择
 
-
 #### 完整备份之累积备份（Incremental backup）
+
 
 
 #### 完整备份之差异备份（Differential backup）
 
 
+
 #### 关键数据备份
 
 
+
 ### 20.5 鸟哥的备份策略
+
+1. 主机硬件：使用一个独立的 filesystem 来储存备份数据，此 filesystem 挂载到 /backup 当中；
+2. 每日进行：目前仅备份 MySQL 数据库；
+3. 每周进行：包括 /home, /var, /etc, /boot, /usr/local 等目录与特殊服务的目录；
+4. 自动处理：这方面利用 /etc/crontab 来自动提供备份的进行；
+5. 异地备援：每月定期的将数据分别 （a）烧录到光盘上面 （b）使用网络传输到另一部机器上面。
+
 
 
 #### 每周系统备份的脚本
 
 
+
 #### 每日备份数据的脚本
 
 
+
 #### 远程备份的脚本
+
+
 
 
 ### 20.6 灾难恢复的考虑
 
 
 
+#### 硬件损毁，且具有完整备份的数据时
+
+
+
+#### 由于软件的问题产生的被攻破资安事件
 
 
 
 
-#### 1、CentOS 系统设定工具: setup
-
-
-
-#### 2、利用CUPS设定Linux打印机
-
-
-
-####  3、硬件数据收集不驱劢，及 lm_sensors
-
-kernel 在开机时就能够侦测主机硬件并加载适当的模块来驱动硬件了。 而核心所侦测到的各项硬件装置，后来就会被记录在 /proc 与 /sys 当中了。 包括 /proc/cpuinfo, /proc/partitions, /proc/interrupts 等等。
-
-- fdisk:  第八章曾经谈过，可以使用 fdisk -l 将分割表列出;
-- hdparm:  第八章，可观察硬盘的信息与测试读写速度;
-- dmesg:  第十七章谈过， 观察核心运作过程当中所显示的各项讯息记录;
-- vmstat:  第十七章谈过，可分析系统 (CPU/RAM/IO) 目前的状态;
-- lspci:  列出整个 PC 系统的 PCI 接口装置!很有用的指令;
-- lsusb:  列出目前系统上面各个 USB 端口口的状态，与连接的 USB 装置;
-- iostat: 与vmstat 类似，可实时列出整个 CPU 不接口设备的 Input/Output 状态。
-
-
-
-lm_sensors，是一款基于linux系统的[硬件监控](https://baike.baidu.com/item/硬件监控/6458294)的软件。可以监控主板，CPU的工作电压，温度等数据。
 
 
 
@@ -5166,7 +5340,9 @@ lm_sensors，是一款基于linux系统的[硬件监控](https://baike.baidu.com
 
 了解如何将开放源码的程序设计、加入函数库的原理、通过编译而成为可以执行的 binary program，最后该可执行文件可被我们所使用的一连串过程!
 
-### 21.1 源码安装
+### 21.1 开放源码的软件安装与升级简介
+
+
 
 #### 什么是开放源码、编译器和可执行文件
 
@@ -5192,7 +5368,7 @@ Linux系统中的真正可执行文件都是二进制文件，例如`/usr/bin/pa
 
 #### make 与 configure
 
- gcc是编译器。make是依赖于Makefile来编译多个源文件的工具，在Makefile里同样是用gcc(或者别的编译器)来编译源代码。
+gcc是编译器。make是依赖于Makefile来编译多个源文件的工具，在Makefile里同样是用gcc(或者别的编译器)来编译源代码。
 
 执行 make 时，make 会在当前目录下搜寻Makefile/makefile文件，而 Makefile 里面则记录了源代码如何编译的详细信息！make 会自动的判别源码是否经过变动了，然后自动更新可执行文件。
 
@@ -5225,9 +5401,11 @@ Tarball文件解压后通常包括：
 
 直接使用linux发行厂商预先编译好的程序来安装与升级，省略了监测、编译等过程。
 
- Red Hat 系统（含 Fedora/CentOS 系列） 发展的 ==RPM== 软件管理机制与 ==yum== 线上更新模式；
+Red Hat 系统（含 Fedora/CentOS 系列） 发展的 ==RPM== 软件管理机制与 ==yum== 线上更新模式；
 
 Debian 使用的 ==dpkg== 软件管理机制与 ==APT== 线上更新模式。
+
+
 
 ### 21.2 源码安装示例
 
@@ -5333,46 +5511,90 @@ C语言里面的sin函数是写在 libm.so 这个数学函数库中。
 
 🔖
 
+##### gcc 的简易用法 （编译、参数与链结）
+
+
+
+
+
 ### 21.3 用make进行宏编译
 
-
 #### 为什么要用make
+
 
 
 #### makefile的基本语法与变量
 
 
+
+
 ### 21.4 Tarball的管理与建议
 
-
 #### 使用源代码管理软件所需要的基础软件
+
 
 
 #### Tarball安装的基本步骤
 
 
+
 #### 一般Tarball软件安装的建议事项（如何删除？升级？）
+
 
 
 #### 一个简单的范例、利用ntp来示范
 
 
+
 #### 利用patch更新源代码
+
+
 
 
 ### 21.5 函数库管理
 
-
 #### 动态与静态函数库
+
 
 
 #### ldconfig与/etc/ld.so.conf
 
 
+
 #### 程序的动态函数库解析：ldd
+
+> 如何判断某个可执行的 binary 文件含有什么动态函数库呢？
+
+```sh
+[root@study ~]# ldd [-vdr] [filename]
+选项与参数：
+-v ：列出所有内容信息；
+-d ：重新将数据有遗失的 link 点秀出来！
+-r ：将 ELF 有关的错误内容秀出来！
+```
+
+
 
 
 ### 21.6 校验软件正确性
+
+##### 21.6.1 md5sum / sha1sum / sha256sum
+
+```sh
+[root@study ~]# md5sum/sha1sum/sha256sum [-bct] filename
+[root@study ~]# md5sum/sha1sum/sha256sum [--status|--warn] --check filename
+选项与参数：
+-b ：使用 binary 的读档方式，默认为 Windows/DOS 文件型态的读取方式；
+-c ：检验文件指纹；
+-t ：以文字体态来读取文件指纹。
+```
+
+```sh
+$ cat ntp-4.2.8p3.tar.gz.md5 
+b98b0cbb72f6df04608e1dd5f313808b  ntp-4.2.8p3.tar.gz
+$ md5sum ntp-4.2.8p3.tar.gz
+b98b0cbb72f6df04608e1dd5f313808b  ntp-4.2.8p3.tar.gz
+```
 
 
 
@@ -5380,84 +5602,267 @@ C语言里面的sin函数是写在 libm.so 这个数学函数库中。
 
 ## 22 软件安装：RPM、SRPM、YUM
 
-
-
-### 22.1 软件管理器简介
-
+### 22.1 软件管理员简介
 
 #### Linux界的两大主流：RPM与DPKG
 
+![](images/image-20250207135612185.png)
 
 #### 什么是RPM与SRPM
 
+RPM，RedHat Package Manager，`xxx.rpm`，【RPM 的格式，已经经过编译且包装完成的 rpm 文件】
+
+SRPM是 Source RPM 的意思，也就是这个 RPM文件里面含有源代码。扩展名 `***.src.rpm`。【SRPM的格式，包含未编译的源代码信息】
+
+
 
 #### 什么是i386、i586、i686、noarch、x86_64
+
+`rp-pppoe-3.11-5.el7.x86_64.rpm`
+
+![](images/image-20250207140101249.png)
+
+
+
+
+
+
+
 
 
 #### RPM的优点
 
 
+
+
+
+
+
 #### RPM属性依赖的解决方式：YUM在线升级
+
+
+
 
 
 ### 22.2 RPM软件管理程序：rpm
 
 
-#### RPM默认安装的路径
+#### 22.2.1 RPM默认安装的路径
+
+一般来说，RPM 类型的文件在安装的时候，会先去读取文件内记载的设置参数内容，然后将该数据用来比对 Linux 系统的环境，以找出是否有属性相依的软件尚未安装的问题。
+
+若环境检查合格了，那么 RPM 文件就开始被安装到你的 Linux 系统上。安装完毕后，该软件相关的信息就会被写入 `/var/lib/rpm/` 目录下的数据库文件中了。
+
+| /etc           | 一些配置文件放置的目录，例如 /etc/crontab |
+| -------------- | ----------------------------------------- |
+| /usr/bin       | 一些可可执行文件案                        |
+| /usr/lib       | 一些程序使用的动态函数库                  |
+| /usr/share/doc | 一些基本的软件使用手册与说明文档          |
+| /usr/share/man | 一些 man page 文件                        |
 
 
-#### RPM安装（install）
+
+#### 22.2.2 RPM安装（install）
+
+```sh
+[root@study ~]# rpm -ivh package_name
+选项与参数：
+-i ：install 的意思
+-v ：察看更细部的安装信息画面
+-h ：以安装信息列显示安装进度
+```
 
 
-#### RPM升级与更新（upgrade/freshen）
+
+#### 22.2.1 RPM升级与更新（upgrade/freshen）
 
 
-#### RPM查询（query）
+
+#### 22.2.1 RPM查询（query）
+
+查询`/var/lib/rpm/`目录下的数据库文件。
+
+```sh
+[root@study ~]# rpm -qa 													 <==已安装软件
+[root@study ~]# rpm -q[licdR] 已安装的软件名称 			 <==已安装软件
+[root@study ~]# rpm -qf 存在于系统上面的某个文件名 		<==已安装软件
+[root@study ~]# rpm -qp[licdR] 未安装的某个文件名称 	<==查阅RPM文件
+选项与参数：
+查询已安装软件的信息：
+-q ：仅查询，后面接的软件名称是否有安装；
+-qa ：列出所有的，已经安装在本机 Linux 系统上面的所有软件名称；
+-qi ：列出该软件的详细信息 （information），包含开发商、版本与说明等；
+-ql ：列出该软件所有的文件与目录所在完整文件名 （list）；
+-qc ：列出该软件的所有配置文件 （找出在 /etc/ 下面的文件名而已）
+-qd ：列出该软件的所有说明文档 （找出与 man 有关的文件而已）
+-qR ：列出与该软件有关的相依软件所含的文件 （Required 的意思）
+-qf ：由后面接的文件名称，找出该文件属于哪一个已安装的软件；
+-q --scripts：列出是否含有安装后需要执行的脚本档，可用以 debug 喔！
+查询某个 RPM 文件内含有的信息：
+-qp[icdlR]：注意 -qp 后面接的所有参数以上面的说明一致。但用途仅在于找出某个 RPM 文件内的信息，而非已安装的软件信息！
+```
 
 
-#### RPM验证与数字签名（Verify/signature）
+
+```sh
+rpm -q logrotate
+rpm -ql logrotate
+rpm -qi logrotate
+```
 
 
-#### RPM反安装与重建数据库（erase/rebuilddb）
+
+#### 22.2.1 RPM验证与数字签名（Verify/signature）
+
+```sh
+[root@study ~]# rpm -Va
+[root@study ~]# rpm -V 已安装的软件名称
+[root@study ~]# rpm -Vp 某个 RPM 文件的文件名
+[root@study ~]# rpm -Vf 在系统上面的某个文件
+选项与参数：
+-V ：后面加的是软件名称，若该软件所含的文件被更动过，才会列出来；
+-Va ：列出目前系统上面所有可能被更动过的文件；
+-Vp ：后面加的是文件名称，列出该软件内可能被更动过的文件；
+-Vf ：列出某个文件是否被更动过～
+```
+
+
+
+```sh
+$ rpm -V logrotate
+S.5....T.  c /etc/logrotate.conf
+```
+
+
+
+- S ：（file Size differs） 文件的容量大小是否被改变
+
+- M ：（Mode differs） 文件的类型或文件的属性 （rwx） 是否被改变？如是否可执行等参数已被改变
+
+- 5 ：（MD5 sum differs） MD5 这一种指纹码的内容已经不同
+
+- D ：（Device major/minor number mis-match） 设备的主/次代码已经改变
+
+- L ：（readLink（2） path mis-match） Link 路径已被改变
+
+- U ：（User ownership differs） 文件的所属人已被改变
+
+- G ：（Group ownership differs） 文件的所属群组已被改变
+
+- T ：（mTime differs） 文件的创建时间已被改变
+
+- P ：（caPabilities differ） 功能已经被改变
+
+文件类型：
+
+- c ：配置文件 （config file）
+
+- d ：文件数据文件 （documentation）
+
+- g ：鬼文件～通常是该文件不被某个软件所包含，较少发生！（ghost file）
+
+- l ：授权文件 （license file）
+
+- r ：读我文件 （read me）
+
+
+
+
+
+#### 22.2.1 RPM反安装与重建数据库（erase/rebuilddb）
+
+
 
 
 ### 22.3 YUM在线升级功能
 
-
 #### 利用YUM进行查询、安装、升级与删除功能
+
+```sh
+[root@study ~]# yum [option] [查询工作项目] [相关参数]
+选项与参数：
+[option]：主要的选项，包括有：
+	-y ：当 yum 要等待使用者输入时，这个选项可以自动提供 yes 的回应；
+	--installroot=/some/path ：将该软件安装在 /some/path 而不使用默认路径
+[查询工作项目] [相关参数]：这方面的参数有：
+	search ：搜寻某个软件名称或者是描述 （description） 的重要关键字；
+	list ：列出目前 yum 所管理的所有的软件名称与版本，有点类似 rpm -qa；
+	info ：同上，不过有点类似 rpm -qai 的执行结果；
+	provides：从文件去搜寻软件！类似 rpm -qf 的功能！
+```
+
+
+
+```sh
+[root@study ~]# yum [option] [安装与升级的工作项目] [相关参数]
+选项与参数：
+	install ：后面接要安装的软件！
+	update ：后面接要升级的软件，若要整个系统都升级，就直接 update 即可
+```
+
+
+
+```sh
+移除功能：yum [remove] 软件
+```
+
 
 
 #### YUM的配置文件
 
+```sh
+cat /etc/yum.repos.d/centos.repo 
+```
+
+
 
 #### YUM的软件群组功能
+
+```sh
+[root@study ~]# yum [群组功能] [软件群组]
+选项与参数：
+	grouplist ：列出所有可使用的“软件群组组”，例如 Development Tools 之类的；
+	groupinfo ：后面接 group_name，则可了解该 group 内含的所有软件名；
+	groupinstall：这个好用！可以安装一整组的软件群组，相当的不错用！
+	groupremove ：移除某个软件群组；
+```
+
 
 
 #### EPEL/ELRepo外挂软件以及自定义配置文件
 
 
+
 #### 全系统自动升级
+
 
 
 #### 管理的抉择：RPM还是Tarball
 
 
+
 #### 基础服务管理：以Apache为例
+
+
 
 
 ### 22.4 SRPM的使用：rpmbuild
 
-
 #### 利用默认值安装SRPM文件（--rebuid/--recompile）
+
 
 
 #### SRPM使用的路径与需要的软件
 
 
+
 #### 配置文件的主要内容（*.spec）
 
 
+
 #### SRPM的编译命令（-ba/-bb）
+
+
 
 
 #### 一个打包自己软件的范例
@@ -5486,8 +5891,29 @@ C语言里面的sin函数是写在 libm.so 这个数学函数库中。
 
 #### 内核源代码的获取方式
 
-
 #### 内核源代码的解压缩、安装、查看
+
+##### 内核源代码下的次目录
+
+- arch ：与硬件平台有关的项目，大部分指的是 CPU 的类别，例如 x86, x86_64, Xen 虚拟支持等；
+- block ：与区块设备较相关的设置数据，区块数据通常指的是大量储存媒体！还包括类似 ext3 等文件系统的支持是否允许等。
+- crypto ：核心所支持的加密的技术，例如 md5 或者是 des 等等；
+- Documentation ：与核心有关的一堆说明文档，若对核心有极大的兴趣，要瞧瞧这里！
+- drivers ：一些硬件的驱动程序，例如显卡、网卡、PCI 相关硬件等等；
+- firmware ：一些旧式硬件的微指令码 （固件） 数据；
+- fs ：核心所支持的 filesystems ，例如 vfat, reiserfs, nfs 等等；
+- include ：一些可让其他程序调用的标头 （header） 定义数据；
+- init ：一些核心初始化的定义功能，包括挂载与 init 程序的调用等；
+- ipc ：定义 Linux 操作系统内各程序的沟通；
+- kernel ：定义核心的程序、核心状态、线程、程序的调度 （schedule）、程序的讯号 （signle） 等
+- lib ：一些函数库；
+- mm ：与内存单元有关的各项数据，包括 swap 与虚拟内存等；
+- net ：与网络有关的各项协定数据，还有防火墙模块 （net/ipv4/netfilter/*） 等等；
+- security ：包括 selinux 等在内的安全性设置；
+- sound ：与音效有关的各项模块；
+- virt ：与虚拟化机器有关的信息，目前核心支持的是 KVM （Kernel base Virtual Machine）
+
+
 
 
 ### 24.2 内核编译前的预处理与内核功能选择
