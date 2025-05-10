@@ -3327,11 +3327,11 @@ grep -n 'go\{2,\}g' regular_express.txt
 
 
 
-## 13 Linux账号管理与ACL权限控制 🔖
+## 13 Linux账号管理与ACL权限控制
 
 ### 13.1 Linux的账号与用户组
 
-#### 用户标识符：UID与GID
+#### 13.1.1 用户标识符：UID与GID
 
 Linux不认识『账号名字』，只认识ID。
 
@@ -3342,13 +3342,25 @@ Linux不认识『账号名字』，只认识ID。
 ```sh
 $ id andyron
 用户id=1000(andyron) 组id=1000(andyron) 组=1000(andyron),10(wheel),977(docker)
+
+$ ll -d /home/andyron/
+drwx------. 18 andyron andyron 4096  5月  9 23:28 /home/andyron/
 ```
 
 
 
-#### 使用者账号
+#### 13.1.2 使用者账号
 
-密码表 `/etc/shadow`
+用户输入账号密码后，系统帮其处理了：
+
+- 现在/etc/passwd中查看是否有用户的账号。没有就跳出，有则将该账号对应的UID与GID(`/etc/group`)读出来。另外该账号的主文件夹与shell设置也一并督促；
+- 然后核对密码表`/etc/shadow`；
+
+- 如果没有问题，就进入shell管控。
+
+可通过这两个`man 5 passwd`和`man 5 shadow`命令查看两个文件的介绍。
+
+当你要登陆你的 Linux 主机的时候，那个 /etc/passwd 与 /etc/shadow就必须要让系统读取啦 （这也是很多攻击者会将特殊帐号写到 /etc/passwd 里头去的缘故）。
 
 ##### /etc/passwd文件结构
 
@@ -3368,7 +3380,7 @@ adm:x:3:4:adm:/var/adm:/sbin/nologin
 
 4. GID
 
-5. 使用者信息说明
+5. 使用者信息说明。只是用来解释账号的意义。
 
 6. 主文件夹
 
@@ -3424,7 +3436,7 @@ adm:*:19347:0:99999:7:::
 
 
 
-#### 关于群组：有效与初始群组, groups, newgr
+#### 13.1.3 关于群组：有效与初始群组, groups, newgr
 
 ##### /etc/group文件结构
 
@@ -3446,9 +3458,9 @@ sys:x:3:
 
    多个账号以逗号分隔
 
+![](images/image-20250510145038861.png)
 
-
-##### 有效群组（effective group）与初始群组（initial group）
+##### 有效群组（effective group）与初始群组（initial group）🔖
 
 
 
@@ -3618,7 +3630,7 @@ change shell
 
 
 
-#### 4️⃣账号管理实例
+#### 4️⃣账号管理实例 🔖
 
 
 
@@ -3628,7 +3640,7 @@ change shell
 
 
 
-### 13.3 主机的详细权限规划：ACL的使用 🔖
+### 13.3 主机的==详细权限==规划：ACL的使用 🔖
 
 传统的权限仅有三种身份（owner, group, others） 搭配三种权限 （r,w,x） 而已，并没有办法单纯的**针对某一个使用者或某一个群组来设置特定的权限**需求，此时就需要ACL机制了。
 
@@ -3638,13 +3650,19 @@ ACL 是 Access Control List 的缩写，主要的目的是在提供传统的 own
 
 
 
+```sh
+$ dmesg | grep -i acl
+```
+
+
+
 #### 13.3.2 ACL的设置技巧：`getfacl`、`setfacl`
 
 getfacl：取得某个文件/目录的 ACL 设置项目；
 
 setfacl：设置某个目录/文件的 ACL 规范。
 
-
+##### setfacl
 
 ```sh
 [root@study ~]# setfacl [-bkRd] [{-m|-x} acl参数] 目标文件名
@@ -3659,7 +3677,7 @@ setfacl：设置某个目录/文件的 ACL 规范。
 
 
 
-
+##### getfacl
 
 ```sh
 getfacl filename
@@ -3669,9 +3687,25 @@ getfacl 的选项几乎与 setfacl 相同
 
 
 
+##### 特定的单一群组的权限设置：“g:群组名:权限”
+
+
+
+##### 针对有效权限设置：“m:权限”
+
+
+
+##### 使用默认权限设置目录未来文件的 ACL 权限继承“ d:[u|g]:[user|group]:权限 ”
+
 
 
 ### 13.4 用户身份切换 🔖
+
+> 在Linux系统当中为什么要作身份的变换？
+
+- 使用一般帐号：系统平日操作的好习惯
+- 用较低权限启动系统服务
+- 软件本身的限制
 
 #### su
 
@@ -3808,7 +3842,7 @@ password 	substack 		postlogin
 
 
 
-### 13.7 CentOS 7环境下大量创建账号的方法
+### 13.7 CentOS 7环境下大量创建账号的方法🔖
 
 #### 一些账号相关的检查工具
 
@@ -3832,9 +3866,11 @@ password 	substack 		postlogin
 
 ## 14 磁盘配额（Quota）与进阶文件系统管理
 
-### 14.1 磁盘配额（Quota）的应用与实践
+### 14.1 磁盘配额（Quota）的应用与实践 🔖
 
 #### 14.1.1 什么是磁盘配额
+
+在 Linux 系统中，由于是多用户多任务的环境，所以会有多人共同使用一个硬盘空间的情况发生，如果其中有少数几个使用者大量的占掉了硬盘空间的话，那势必压缩其他使用者的使用权力！ 因此管理员应该适当的限制硬盘的容量给使用者，以妥善的分配系统资源！避免有人抗议呀！
 
 ##### Quota的一般用途
 
@@ -3846,21 +3882,30 @@ password 	substack 		postlogin
 
 - 针对 file server，例如：每个人最大的可用网络硬盘空间 （教学环境中最常见！）
 
+针对 Linux 系统主机上面的设置：
 
+- 限制某一群组所能使用的最大磁盘配额 （使用群组限制）
 
-限制某一群组所能使用的最大磁盘配额 （使用群组限制）
+- 限制某一使用者的最大磁盘配额 （使用使用者限制）
 
-限制某一使用者的最大磁盘配额 （使用使用者限制）
-
-限制某一目录 （directory, project） 的最大磁盘配额
+- 限制某一目录 （directory, project） 的最大磁盘配额
 
 ##### Quota的使用限制
 
-
+- 在 EXT 文件系统家族仅能针对整个 filesystem
+- 核心必须支持 quota 
+- 只对一般身份使用者有效
+- 若启用 SELinux，非所有目录均可设置 quota
 
 ##### Quota的规范设置项目
 
+quota针对 XFS filesystem 的限制主要有：
 
+- 分别针对使用者、群组或个别目录 （user, group & project）
+- 容量限制或文件数量限制 （block 或 inode）
+
+- 柔性劝导与硬性规定 （soft/hard）
+- 会倒数计时的宽限时间 （grace time）
 
 
 
@@ -4027,9 +4072,9 @@ Logical Volume, LV, 逻辑卷轴
 
 
 
-## 15 例行性工作调度 (**crontab**)
+## 15 计划任务 (crontab)
 
-### 15.1 什么是例行性工作调度
+### 15.1 什么是计划任务
 
 
 
@@ -4037,21 +4082,15 @@ Logical Volume, LV, 逻辑卷轴
 
 
 
-#### CentOS Linux系统上常见的例行性工作
+#### CentOS Linux系统上常见的计划任务
 
-进行登录文件的轮替 （log rotate）
-
-登录文件分析 logwatch 的任务
-
-创建 locate 的数据库
-
-man page 查询数据库的创建
-
-RPM 软件登录文件的创建
-
-移除暂存盘
-
-与网络服务有关的分析行为
+- 进行登录文件的轮替 （log rotate）
+- 登录文件分析 logwatch 的任务
+- 创建 locate 的数据库
+- man page 查询数据库的创建
+- RPM 软件登录文件的创建
+- 移除暂存盘
+- 与网络服务有关的分析行为
 
 
 
