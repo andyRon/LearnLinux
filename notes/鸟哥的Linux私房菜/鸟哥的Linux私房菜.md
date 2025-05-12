@@ -4145,29 +4145,13 @@ anacron 并不是用来取代crontab的，anacron 存在的目的就在于处理
 
 ### 16.1 什么是程序（process）
 
+在 Linux中，<u>**触发任何一个事件**时，系统都会将他定义成一个程序，并且给予这个程序一个ID ，成为**PID**，同时依据这个程序的用户与相关属性关系，给予这个PID一组有效的权限设定</u>。从此以后，这个PID能够在系统上进行的动作，就与这个PID的权限有关了。
+
 #### 16.1.1 进程与程序（process & program）
 
 - program：通常为 binary program ，放置在储存媒体中 （如硬盘、光盘、软盘、磁带等），为实体文件的型态存在；
 
 - process：程序被触发后，执行者的权限与属性、程序的程序码与所需数据等都会被载入内存中， 操作系统并给予这个内存内的单元一个识别码 （PID），可以说，程序就是一个正在运行中的程序。
-
-##### 子程序与父程序
-
-
-
-
-
-
-
-
-
-
-
-
-
-在 Linux中，<u>**触发任何一个事件**时，系统都会将他定义成一个程序，并且给予这个程序一个ID ，成为**PID**，同时依据这个程序的用户与相关属性关系，给予这个PID一组有效的权限设定</u>。从此以后，这个PID能够在系统上进行的动作，就与这个PID的权限有关了。
-
-##### process  与 program
 
 两者都可以翻译为程序，program通常就是指二进制文件；而process就是加载到内存中运行的program，操作系统给process分配了PID，process有时也翻译成进程。
 
@@ -4175,9 +4159,7 @@ anacron 并不是用来取代crontab的，anacron 存在的目的就在于处理
 
 ![](images/linux-020.jpg)
 
-
-
-###### 子程序与父程序
+##### 子程序与父程序
 
 Parent PID(PPID)
 
@@ -4193,17 +4175,19 @@ F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 
 > 平常一个程序被关闭后，会再运行，大概率（也有可能是crontab）是被一个父程序调用运行。
 
-###### fork 和 exec：程序调用的流程
+##### fork 和 exec：程序调用的流程
+
+在Linux的程序调用通常称为==fork-and-exec==的流程。**程序都会借由父程序以复制 （fork） 的方式产生一个一模一样的子程序， 然后被复制出来的子程序再以 exec 的方式来执行实际要进行的程序，最终就成为一个子程序的存在。** 
 
 ![](images/linux-021.jpg)
 
 
 
-###### 系统或网络服务：常驻在内存的程序
+##### 系统或网络服务：常驻在内存的程序
 
 一般`touch`，`ls`，`rm`等程序执行完就结束了。
 
-也有一只在内存中运行的程序，叫服务（daemon）或守护进程。如**crond**（每分钟都会扫描/etc/crontab等文件）、syslog等，还有负责网络方面httpd、postfix、vsftpd等等。
+也有一只在内存中运行的程序，叫==服务（daemon）==或==守护进程==。如**crond**（每分钟都会扫描/etc/crontab等文件）、syslog等，还有负责网络方面httpd、postfix、vsftpd等等。
 
 
 
@@ -4215,15 +4199,24 @@ F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 
 
 
-### 16.2 工作管理（job control）
+### 16.2 工作管理（job control）🔖🔖
 
-
+这个工作管理 （job control） 是用在 bash 环境下的，也就是说：“**当我们登陆系统取得 bash shell之后，在单一终端机接口下同时进行多个工作的行为管理** ”。举例来说，我们在登陆 bash 后， 想要一边复制文件、一边进行数据搜寻、一边进行编译，还可以一边进行 vim 程序撰写！ 当然我们可以重复登陆那六个命令行的终端机环境中，不过，能不能在一个 bash 内达成？ 当然可以啊！就是使用 job control。
 
 #### 什么是任务管理
 
-
+> `/etc/security/limits.conf`中可以设置使用者通史可以登录的连接数。
 
 #### job control的管理
+
+```sh
+&
+ctrl-z
+jobs
+fg
+bg
+kill
+```
 
 
 
@@ -4231,9 +4224,9 @@ F S   UID    PID   PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
 
 
 
-### 16.3 进程管理
+### 16.3 程序管理 🔖🔖
 
-#### 16.3.1 查看进程
+#### 16.3.1 程序的观察
 
 ##### ps ：将某个时间点的程序运行情况截取下来
 
@@ -4252,11 +4245,29 @@ j ：工作的格式 （jobs format）
 -f ：做一个更为完整的输出。
 ```
 
-仅观察自己的 bash 相关程序： `ps -l`
+- 仅观察自己的 bash 相关程序： `ps -l`
 
 
 
-#### 16.3.2 进程的管理
+- 观察系统所有程序： `ps aux`
+
+
+
+
+
+##### top：动态观察程序的变化
+
+
+
+
+
+##### pstree
+
+
+
+
+
+#### 16.3.2 程序的管理
 
 ![](images/image-20250205180304861.png)
 
@@ -4280,19 +4291,23 @@ j ：工作的格式 （jobs format）
 
 
 
-#### 16.3.3 关于进程的执行顺序
+#### 16.3.3 关于程序的执行顺序
 
 ##### Priority 与 Nice 值
 
 
 
-##### renice ：已存在程序的 nice 重新调整
+##### nice：新执行的指令即给予新的 nice 值
+
+
+
+##### renice：已存在程序的 nice 重新调整
 
 
 
 
 
-#### 16.3.4 查看系统资源信息
+#### 16.3.4 查看系统资源 🔖
 
 ##### free：观察内存使用情况
 
@@ -4318,7 +4333,7 @@ j ：工作的格式 （jobs format）
 
 
 
-### 16.4 特殊文件与进程
+### 16.4 特殊文件与程序
 
 #### 16.4.1 具有SUID/SGID权限的命令执行状态
 
@@ -4377,11 +4392,11 @@ j ：工作的格式 （jobs format）
 
  Security Enhanced Linux
 
-
-
 ##### 当初设计的目标：避免资源的误用
 
-其实 SELinux 是在进行程序、文件等细部权限设置依据的一个核心模块！ 由于启动网络服务的也是程序，因此刚好也能够控制网络服务能否存取系统资源的一道关卡！
+美国国家安全局 （NSA）
+
+其实 SELinux 是在进行程序、文件等细部权限设置依据的一个核心模块！ 由于启动网络服务的也是程序，因此**刚好也能够控制网络服务能否存取系统资源**的一道关卡！
 
 
 
@@ -4487,21 +4502,84 @@ j ：工作的格式 （jobs format）
 
 系统为了某些功能必须要提供一些服务 （不论是系统本身还是网络方面），这个服务就称为 service 。 
 
-但是 service 的提供总是需要程序的运行吧！否则如何执行呢？所以达成这个 service 的程序我们就称呼他为 daemon 啰！ 
+但是 service 的提供总是需要程序的运行吧！否则如何执行呢？所以达成这个 service 的程序我们就称呼为daemon。
 
-举例来说，达成循环型例行性工作调度服务 （service） 的程序为 crond 这个 daemon 啦！
+举例来说，达成循环型例行性工作调度服务 （service） 的程序为 crond 这个 daemon。
 
 > 事实上，可以将这两者视为相同！因为达成某个服务是需要一支 daemon 在背景中运行， 没有这支 daemon 就不会有 service ！
 >
-> 这些服务的名称被创建之后，被挂上 Linux 使用时，通常在服务的名称之后会加上一个d。 
+> 这些服务的名称被创建之后，被挂上 Linux 使用时，通常在服务的名称之后会加上一个`d`。 
 
 #### 17.1.1 早期System V的init管理操作中daemon的主要分类
 
+基本上 init 的管理机制有几个特色：
 
+- 服务的启动、关闭与观察等方式：
+
+  所有的服务启动脚本通通放置于 `/etc/init.d/` 下面，基本上都是使用 bash shell script 所写成的脚本程序，需要启动、关闭、重新启动、观察状态时， 可以通过如下的方式来处理：
+
+  + 启动：`/etc/init.d/daemon start`
+  + 关闭：`/etc/init.d/daemon stop`
+  + 重新启动：`/etc/init.d/daemon restart`
+  + 状态观察：`/etc/init.d/daemon status`
+
+- 服务启动的分类：
+
+  init 服务的分类中，依据服务是独立启动或被一只总管程序管理而分为两大类：
+
+  + ==独立启动模式 （stand alone）==：服务独立启动，该服务直接常驻于内存中，提供本机或用户的服务行为，反应速度快。
+  + ==总管程序 （super daemon）==：由特殊的 xinetd 或 inetd 这两个总管程序提供 socket 对应或 port 对应的管理。当没有用户要求某 socket 或 port 时， 所需要的服务是不会被启动的。若有用户要求时，xinetd 总管才会去唤醒相对应的服务程序。当该要求结束时，这个服务也会被结束掉～ 因为通过xinetd 所总管，因此这个家伙就被称为 super daemon。好处是可以通过 super daemon 来进行服务的时程、连线需求等的控制，缺点是唤醒服务需要一点时间的延迟。
+
+- 服务的相依性问题：
+
+  服务是可能会有相依性的～例如，你要启动网络服务，但是系统没有网络， 那怎么可能可以唤醒网络服务呢？如果你需要连线到外部取得认证服务器的连线，但该连线需要另一个A服务的需求，问题是，A服务没有启动， 因此，你的认证服务就不可能会成功启动的！这就是所谓的服务相依性问题。**init 在**
+
+  **管理员自己手动处理这些服务时，是没有办法协助相依服务的唤醒的！**
+
+- 执行等级的分类：
+
+  上面说到 init 是开机后核心主动调用的， 然后 init 可以根据使用者自订的**执行等级 （runlevel）** 来唤醒不同的服务，以进入不同的操作界面。
+
+  基本上 Linux 提供 7 个执行等级，分别是 0, 1, 2...6 ，比较重要的是 1）单人维护模式、3）纯文本模式、5）文字加图形界面。
+
+  而各个执行等级的启动脚本是通过`/etc/rc.d/rc[0-6]/SXXdaemon` 链接到 `/etc/init.d/daemon` ， 链接文件名 （SXXdaemon） 的功能为： `S`为启动该服务，`XX`是数字，为启动的顺序。由于有 SXX 的设置，因此在开机时可以“依序执行”所有需要的服务， 同时也能解决相依服务的问题。这点与管理员自己手动处理不太一样就是了。
+
+- 制定执行等级默认要启动的服务：
+
+  若要创建如上提到的 SXXdaemon 的话，不需要管理员手动创建链接文件， 通过如下的指令可以来处理默认启动、默认不启动、观察默认启动否的行为：
+
+  + 默认要启动： `chkconfig daemon on`
+  + 默认不启动： `chkconfig daemon off`
+  + 观察默认为启动否： `chkconfig --list daemon`
+
+- 执行等级的切换行为：
+
+  当要从纯命令行 （runlevel 3） 切换到图形界面 （runlevel 5）， 不需要手动启动、关闭该执行等级的相关服务，只要“ `init 5` ”即可切换，init会主动去分析 `/etc/rc.d/rc[35].d/` 这两个目录内的脚本，然后启动转换 runlevel 中需要的服务，就完成整体的 runlevel 切换。
+
+
+
+基本上 init 主要的功能都写在上头了，重要的指令包括 daemon 本身自己的脚本（/etc/init.d/daemon） 、xinetd 这个特殊的总管程序 （super daemon）、设置默认开机启动的 chkconfig， 以及会影响到执行等级的 init N 等。虽然 CentOS 7 已经不使用 init 来管理服务了，不过因为考虑到某些脚本没有办法直接塞入 systemd 的处理，因此这些脚本还是被保留下来。
 
 #### 17.1.2 systemd使用的unit分类
 
-CentOS 7.x 以后
+CentOS 7.x 以后，Red Hat 系列的 distribution 放弃沿用多年的 System V 开机启动服务的流程， 改用 systemd 这个启动服务管理机制。
+
+使用systemd的好处：
+
+- 平行处理所有服务，加速开机流程
+- 一经要求就回应的 on-demand 启动方式
+- 服务相依性的自我检查
+- 依 daemon 功能分类
+- 将多个 daemons 集合成为一个群组
+- 向下相容旧有的 init 服务脚本
+
+不过 systemd 也是有些地方无法完全取代 init 的！包括：
+
+- 在 runlevel 的对应上，大概仅有 runlevel 1, 3, 5 有对应到 systemd 的某些 target 类型而已，没有全部对应；
+
+- 全部的 systemd 都用 systemctl 这个管理程序管理，而 systemctl 支持的语法有限制，不像/etc/init.d/daemon 就是纯脚本可以自订参数，systemctl 不可自订参数；
+- 如果某个服务启动是管理员自己手动执行启动，而不是使用 systemctl 去启动的 （例如你自己手动输入crond 以启动 crond 服务），那么 systemd 将无法侦测到该服务，而无法进一步管理。
+- systemd 启动过程中，无法与管理员通过 standard input 传入讯息！因此，自行撰写 systemd 的启动设置时，务必要取消互动机制～（连通过启动时传进的标准输入讯息也要避免！）
 
 ##### systemd 的配置文件放置目录
 
@@ -4509,13 +4587,15 @@ systemd 将过去所谓的 daemon 执行脚本通通称为一个**服务单位 �
 
 配置文件位置：
 
-- `/usr/lib/systemd/system/`：每个服务最主要的启动脚本设置，有点类似以前的 /etc/init.d 下面的文件；
+- `/usr/lib/systemd/system/`：每个服务最主要的启动脚本设置，有点类似以前的 /etc/init.d 下面的文件。
 
-- `/run/systemd/system/`：系统执行过程中所产生的服务脚本，这些脚本的优先序要比/usr/lib/systemd/system/ 高！
+- `/run/systemd/system/`：系统执行过程中所产生的服务脚本，这些脚本的优先序要比/usr/lib/systemd/system/高。
 
 - `/etc/systemd/system/`：管理员依据主机系统的需求所创建的执行脚本，其实这个目录有点像以前/etc/rc.d/rc5.d/Sxx 之类的功能！执行优先序又比 /run/systemd/system/ 高喔！
 
+也就是说，到底系统开机会不会执行某些服务其实是看 `/etc/systemd/system/` 下面的设置，所以该目录下面就是一大堆链接文件。而实际执行的 systemd 启动脚本配置文件， 其实都是放置在`/usr/lib/systemd/system/` 下面的！
 
+因此如果你想要修改某个服务启动的设置，应该要去`/usr/lib/systemd/system/` 下面修改才对！
 
 ##### systemd 的 unit 类型分类说明
 
@@ -4541,7 +4621,7 @@ ll /usr/lib/systemd/system/ | grep -E '（vsftpd|multi|cron）'
 
 
 
-### 17.2 通过systemctl管理服务
+### 17.2 通过systemctl管理服务 🔖
 
 #### 通过systemctl管理单一服务（service unit）的启动/开机启动与查看状态
 
@@ -4864,7 +4944,7 @@ pstree
 
 4. /var/log/lastlog：记录系统上面所有的帐号最近一次登陆系统时的相关信息。`lastlog`就是读取这个文件。
 5. /var/log/maillog 或 /var/log/mail/*：记录邮件的往来信息，其实主要是记录 postfix （SMTP 协定提供者） 与 dovecot （POP3 协定提供者） 所产生的信息。
-6. **/var/log/messages**:  	相当的重要，几乎系统发生的错误信息 (或重要信息) 都会记录在这个文件中。
+6. **/var/log/messages**: 相当的重要，几乎系统发生的错误信息 (或重要信息) 都会记录在这个文件中。
 7. /var/log/secure:	基本上，只要牵涉到"需要输入账号密码"的软件，那么当登入时 (不管登入正确或错误) 都会被记录在此。 
 8. /var/log/wtmp, /var/log/faillog：`last`
 9. `/var/log/httpd/*`, `/var/log/news/*`, `/var/log/samba/*`：不同的网路服务都会有自己的登录文件记录其产生的各种信息。
@@ -4873,14 +4953,16 @@ pstree
 
 登录文件产生的两种方式：
 
-- 软件开发商自己定义
--  🔖
+- 软件开发商自己定义写入的登录文件与相关格式。比如apache
+-  由 Linux distribution 提供的登录文件管理服务来统一管理。系统会自己分门别类的将各种信息放置到相关登录文件中。
 
-systemd-journald.service：最主要的讯息收受者，由 systemd 提供的；
+针对登录文件所需的功能，相关服务有：
 
-rsyslog.service：主要登录系统与网络等服务的讯息；
+- `systemd-journald.service`：最主要的讯息收受者，由 systemd 提供的；
 
-logrotate：主要在进行登录文件的轮替功能。
+- `rsyslog.service`：主要登录系统与网络等服务的讯息；
+
+- `logrotate`：主要在进行登录文件的轮替功能。
 
 
 
@@ -4890,7 +4972,7 @@ CentOS 7.x 使用 systemd 提供的 journalctl 日志管理
 
 
 
-#### 18.1.2 登录文件的一般格式
+#### 18.1.2 登录文件内容的一般格式
 
 系统产生的信息记录每条都有几个重要的数据：
 
@@ -4902,15 +4984,21 @@ CentOS 7.x 使用 systemd 提供的 journalctl 日志管理
 
 - 该讯息的实际数据内容。
 
+![](images/image-20250512110211247.png)
+
+“在 08/17 的 18:38 左右，在名为 study的这部主机系统上，由 login 这个程序产生的讯息，内容显示 root 在 tty1 登陆了，而相关的权限给予是通过pam_unix 模块处理的 （共两行数据）。”
+
+记得一个好的系统管理员，要常常去“巡视”登录文件的内容喔！尤其是发生下面几种情况时：
+
+- 当你觉得系统似乎不太正常时；
+
+- 某个 daemon 老是无法正常启动时；
+
+- 某个使用者老是无法登陆时；
+
+- 某个 daemon 执行过程老是不顺畅时；
 
 
-
-
-CentOS 提供 syslogd 这个服务来统一管理登录档喔!
-
-syslogd:主要登录系统不网绚等朋务的讯息;
-klogd:主要登录核心产生的各项信息;
-logrotate:主要在迚行登录文件的轮替功能。
 
 
 
