@@ -5128,11 +5128,13 @@ SYSLOG_FACILITY=[0-23] ：使用 syslog.h 规范的服务相对序号来调用�
 
 
 
-## 19 开机流程、模块管理与Loader
+## 19 开机流程、模块管理与Loader 🔖🔖
 
 ### 19.1 Linux的启动流程分析
 
 #### 19.1.1 启动流程一览
+
+开机管理程序（Boot Loader）不同Linux发行版可能不一样，目前主流是grub2。
 
 1. 载入 BIOS 的硬件信息与进行自我测试，并依据设置取得第一个可开机的设备；
 2. 读取并执行第一个开机设备内 MBR 的 boot Loader （亦即是 grub2, spfdisk 等程序）；
@@ -5156,15 +5158,43 @@ SYSLOG_FACILITY=[0-23] ：使用 syslog.h 规范的服务相对序号来调用�
 
 ##### Boot Loader的功能
 
+![](images/image-20250513143530352.png)
+
+boot loader主要的功能：
+
+- **提供菜单**：使用者可以选择不同的开机项目，这也是多重开机的重要功能！
+
+- **载入核心文件**：直接指向可开机的程序区段来开始操作系统；
+
+- **转交其他loader**：将开机管理功能转交给其他 loader 负责。
+
+
+
+![](images/image-20250513143655349.png)
+
 
 
 ##### 载入核心侦测硬件与 initramfs 的功能
+
+```sh
+ls --format=single-column -F /boot
+```
+
+
+
+![](images/image-20250513143819675.png)
 
 
 
 
 
 #### 19.1.3 第一个程序systemd及使用default.target进入启动程序分析
+
+##### 常见的操作环境 target 与相容于 runlevel 的等级
+
+
+
+##### systemd的处理流程
 
 
 
@@ -5202,7 +5232,7 @@ SYSLOG_FACILITY=[0-23] ：使用 syslog.h 规范的服务相对序号来调用�
 
 ### 19.2 内核与内核模块
 
-#### 内核模块与依赖性
+#### 19.2.1 内核模块与依赖性
 
 核心模块的放置处是在 `/lib/modules/$(uname -r)/kernel` 
 
@@ -5228,7 +5258,7 @@ sound ：与音效有关的各项模块；
 
 
 
-#### 查看内核模块
+#### 19.2.2 查看内核模块
 
 `lsmod`
 
@@ -5245,7 +5275,7 @@ sound ：与音效有关的各项模块；
 
 
 
-#### 核心模块的载入与移除
+#### 19.2.3 核心模块的载入与移除
 
 ```sh
 insmod [/full/path/module_name] [parameters]
@@ -5257,9 +5287,11 @@ modprobe [-cfr] module_name
 
 
 
+#### 19.2.4 内核模块的额外参数设置：`/etc/modprobe.d/*conf`
 
 
-#### 内核模块的额外参数设置：`/etc/modprobe.d/*conf`
+
+
 
 
 
@@ -5267,35 +5299,51 @@ modprobe [-cfr] module_name
 ### 19.3 Boot Loader:Grub2
 
 
-#### boot loader的两个stage
+#### 19.3.1 boot loader的两个stage
 
 
 
-#### grub2的配置文件/boot/grub2/grub.cfg初探
+#### 19.3.2 grub2的配置文件/boot/grub2/grub.cfg初探
+
+##### 磁盘与分区在 grub2 中的代号
 
 
 
-#### grub2配置文件维护/etc/default/grub与/etc/grub.d
+##### /boot/grub2/grub.cfg 配置文件
 
 
 
-#### initramfs的重要性与建立新initramfs文件
+#### 19.3.3 grub2配置文件维护/etc/default/grub与/etc/grub.d
+
+##### /etc/default/grub 主要环境配置文件
 
 
 
-#### 测试与安装grub2
+##### 菜单创建的脚本 /etc/grub.d/*
 
 
 
-#### 启动前的额外功能修改
+
+
+#### 19.3.4 initramfs的重要性与建立新initramfs文件
 
 
 
-#### 关于启动画面与终端画面的图形显示方式
+#### 19.3.5 测试与安装grub2
 
 
 
-#### 为个别选项设置密码
+#### 19.3.6 启动前的额外功能修改
+
+
+
+#### 19.3.7 关于启动画面与终端画面的图形显示方式
+
+
+
+#### 19.3.8 为个别选项设置密码
+
+
 
 
 
